@@ -12,26 +12,26 @@ def run_nmap(target: str) -> str:
         str: The XML output from nmap as a string.
     """
     try:
-        result = subprocess.run(['nmap', '-F', '-oX', '-', target], capture_output=True, text=True, check=True)
+        result = subprocess.run(['programs/nmap/run-nmap.sh', '-F', '-oX', '-', target], capture_output=True, text=True, check=True)
         return result.stdout
     except FileNotFoundError:
-        print("nmap is not installed or not found in PATH. Please install nmap and try again.")
+        print("nmap is not installed. Please run install.py to download and set up nmap.")
         sys.exit(1)
     except Exception as e:
         print(f"An error occurred while running nmap: {e}")
         sys.exit(1)
 
-def parse_nmap_xml(xml_data: str) -> list:
+def parse_nmap_xml(xml_data: str) -> dict:
     """Parses the nmap XML output and extracts open ports
 
     Args:
         xml_data (str): The XML output from nmap as a string.
 
     Returns:
-        list: A list of open ports.
+        dict: A dictionary of open ports and their services.
     """
     print("Parsing nmap XML output...")
-    open_ports = []
+    open_ports = {}
     try:
         root = ET.fromstring(xml_data)
         for port in root.findall('.//port'):
@@ -40,7 +40,7 @@ def parse_nmap_xml(xml_data: str) -> list:
                 port_id = port.get('portid')
                 service = port.find('service')
                 service_name = service.get('name') if service is not None else 'unknown'
-                open_ports.append(f"{port_id}/{service_name}")
+                open_ports[port_id] = service_name
     except ET.ParseError as e:
         print(f"Error parsing XML: {e}")
     
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     if open_ports:
         print("Open ports found:")
-        for port in open_ports:
-            print(port)
+        for port, service in open_ports.items():
+            print(f"{port}: {service}")
     else:
         print("No open ports found.")
