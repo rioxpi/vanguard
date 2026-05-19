@@ -46,7 +46,27 @@ def parse_nmap_xml(xml_data: str) -> dict:
     
     return open_ports
 
+def run_ffuf(target: str) -> None:
+    """Runs ffuf against the specified target.
+
+    Args:
+        target (str): The target to scan
+    """
+    try:
+        subprocess.run(['programs/ffuf/ffuf', '-u', f'{target}/FUZZ', '-w', 'programs/wordlist.txt'], check=True)
+    except FileNotFoundError:
+        print("ffuf is not installed. Please run install.py to download and set up ffuf.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"An error occurred while running ffuf: {e}")
+        sys.exit(1)
+
 if __name__ == "__main__":
+    SSL_SERVICES = {"https", "ssl/http", "https-alt", "ssl/https"}
+    PLAIN_HTTP_SERVICES = {"http", "http-alt", "jetty", "apache-tomcat", "nginx", "lighttpd", "http-proxy"}
+    
+    SSL_PORTS = {"443", "8443", "9443"}
+    PLAIN_HTTP_PORTS = {"80", "3000", "5000", "8000", "8080", "8081", "8088", "8888", "9000"}
     if len(sys.argv) != 2:
         print("Usage: python main.py <target>")
         sys.exit(1)
@@ -57,8 +77,24 @@ if __name__ == "__main__":
     open_ports = parse_nmap_xml(xml_output)
 
     if open_ports:
+        web_targets = {}
         print("Open ports found:")
         for port, service in open_ports.items():
             print(f"{port}: {service}")
+
+            if service in SSL_SERVICES or port in SSL_PORTS:
+                web_targets[port] = f"https://{target}:{port}"
+            elif service in PLAIN_HTTP_SERVICES or port in PLAIN_HTTP_PORTS:
+                web_targets[port] = f"http://{target}:{port}"
+    
+        if web_targets:
+            print("\nWeb targets identified:")
+            for port, url in web_targets.items():
+                print(f"{port}: {url}")
+            
+            for port, url in web_targets.items():
+                print(f"\nRunning ffuf against {url}...")
+                run_ffuf(url)
+        
     else:
         print("No open ports found.")

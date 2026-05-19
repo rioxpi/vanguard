@@ -6,7 +6,9 @@ import subprocess
 
 PROGRAMS_DIR = "programs"
 URLS = {
-    "nmap": "https://github.com/ernw/static-toolbox/releases/download/nmap-v7.94SVN/nmap-7.94SVN-x86_64-portable.zip"
+    "nmap": "https://github.com/ernw/static-toolbox/releases/download/nmap-v7.94SVN/nmap-7.94SVN-x86_64-portable.zip",
+    "ffuf": "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_amd64.tar.gz",
+    "wordlist": "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-large-directories.txt"
 }
 
 
@@ -44,5 +46,43 @@ def downlad_nmap() -> None:
         if os.path.exists(zip_path):
             os.remove(zip_path)
 
+def download_ffuf() -> None:
+    """
+    Downloads and extracts the ffuf binary.
+    """
+    target_dir = os.path.join(PROGRAMS_DIR, "ffuf")
+    tar_path = "ffuf.tar.gz"
+    
+    os.makedirs(target_dir, exist_ok=True)
+    print("Downloading ffuf 2.1.0...")
+    req = urllib.request.Request(URLS["ffuf"])
+
+    try:
+        with urllib.request.urlopen(req) as response, open(tar_path, 'wb') as out_file:
+            out_file.write(response.read())
+        
+        print("Download complete")
+        subprocess.run(['tar', '-xzf', tar_path, '-C', target_dir], check=True)
+        
+        ffuf_binary = os.path.join(target_dir, "ffuf")
+        if os.path.exists(ffuf_binary):
+            st = os.stat(ffuf_binary)
+            os.chmod(ffuf_binary, st.st_mode | stat.S_IEXEC)
+    except Exception as e:
+        print(f"An error occurred during download or extraction: {e}")
+    finally:        
+        if os.path.exists(tar_path):
+            os.remove(tar_path)
+    
+    wordlist_path = os.path.join(PROGRAMS_DIR, "wordlist.txt")
+    print("Downloading wordlist...")
+    try:
+        with urllib.request.urlopen(URLS["wordlist"]) as response, open(wordlist_path, 'wb') as out_file:
+            out_file.write(response.read())
+        print("wordlist download complete")
+    except Exception as e:
+        print(f"An error occurred while downloading the wordlist: {e}")
+    
 if __name__ == "__main__":
     downlad_nmap()
+    download_ffuf()
