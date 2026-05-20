@@ -1,5 +1,10 @@
 # VANGUARD
 
+![Python](https://img.shields.io/badge/python-3.x-blue)
+![Status](https://img.shields.io/badge/status-active-success)
+![Platform](https://img.shields.io/badge/platform-linux-lightgrey)
+![License](https://img.shields.io/badge/license-none-red)
+
 Vanguard is a Python-based reconnaissance utility that automates:
 
 - port scanning using nmap,
@@ -9,7 +14,7 @@ Vanguard is a Python-based reconnaissance utility that automates:
 
 ---
 
-# Features
+## Features
 
 - Automated nmap setup
 - XML parsing of scan results
@@ -20,38 +25,57 @@ Vanguard is a Python-based reconnaissance utility that automates:
 
 ---
 
-# Repository Structure
+## Repository Structure
 
 ```text
 .
 ├── .gitignore
 ├── install.py
 ├── launcher.py
+├── core/
+│   └── config.py 
+├── modules/
+│   ├── port_scanner.py
+│   └── directory_fuzzer.py
 ├── main.py
+├── README.md
 └── programs/   # created locally after installation
 ```
 
-## Files
+### Files
 
-### `install.py`
+#### `install.py`
 Downloads:
 - portable nmap,
 - ffuf,
 - SecLists wordlist.
 
-### `main.py`
+#### `main.py`
 Responsible for:
-- running scans,
-- parsing XML results,
-- detecting web services,
-- launching ffuf.
+- coordinating all modules
+- running the full reconnaissance workflow
+
+#### `config.py`
+Contains default variables:
+- web target ports and services
+- directories for downloaded programs
+
+#### `directory_fuzzer.py`
+Responsible for:
+- launching ffuf
+- parsing ffuf output
+
+#### `port_scanner.py`
+Responsible for:
+- launching nmap
+- parsing nmap output
 
 ### `launcher.py`
 Placeholder for future automation and orchestration features.
 
 ---
 
-# Requirements
+## Requirements
 
 - Python 3
 - Internet connection during setup
@@ -59,7 +83,7 @@ Placeholder for future automation and orchestration features.
 
 ---
 
-# Installation
+## Installation
 
 ```bash
 python install.py
@@ -69,13 +93,13 @@ This downloads all required tools into the local `programs/` directory.
 
 ---
 
-# Usage
+## Usage
 
 ```bash
 python main.py <target>
 ```
 
-## Examples
+### Examples
 
 ```bash
 python main.py 192.168.1.10
@@ -84,7 +108,7 @@ python main.py example.com
 
 ---
 
-# Workflow
+## Workflow
 
 1. Run nmap scan
 2. Parse XML output
@@ -94,16 +118,25 @@ python main.py example.com
 
 ---
 
-# TODO
+## TODO
 
 - [ ] Rewrite UI into a TUI using [axto](https://github.com/rioxpi/axto)
-- [ ] Add ffuf output parser
+- [X] Add ffuf output parser
 - [ ] Add automated launcher
 - [ ] Improve error handling
 - [ ] Add custom wordlist support
+- [ ] Add Agressive port scanning
 
 ---
 
-# Disclaimer
+## CHANGELOG
+### VERSION 0.0.1
+1. Add port scanning using nmap
+2. Add directory fuzzing using ffuf
+3. Parsing nmap&ffuf oputput
+
+---
+
+## Disclaimer
 
 This project is intended for educational purposes and authorized security testing only.
