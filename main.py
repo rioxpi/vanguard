@@ -1,3 +1,4 @@
+import json
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -46,6 +47,28 @@ def parse_nmap_xml(xml_data: str) -> dict:
     
     return open_ports
 
+def parse_ffuf_json(json_data: str) -> list:
+    """Parses the ffuf JSON output and extracts found URLs.
+
+    Args:
+        json_data (str): The JSON output from ffuf as a string.
+
+    Returns:
+        list: A list of found URLs.
+    """
+    print("Parsing ffuf JSON output...")
+    found_urls = []
+    try:
+        data = json.loads(json_data)
+        for result in data.get('results', []):
+            url = result.get('url')
+            if url:
+                found_urls.append(url)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+    
+    return found_urls
+
 def run_ffuf(target: str) -> None:
     """Runs ffuf against the specified target.
 
@@ -53,7 +76,7 @@ def run_ffuf(target: str) -> None:
         target (str): The target to scan
     """
     try:
-        subprocess.run(['programs/ffuf/ffuf', '-u', f'{target}/FUZZ', '-w', 'programs/wordlist.txt'], check=True)
+        subprocess.run(['programs/ffuf/ffuf', '-u', f'{target}/FUZZ', '-w', 'programs/wordlist.txt', '-o', 'ffuf_output.json', '-of', 'json'], check=True, capture_output=True, text=True)
     except FileNotFoundError:
         print("ffuf is not installed. Please run install.py to download and set up ffuf.")
         sys.exit(1)
@@ -95,6 +118,10 @@ if __name__ == "__main__":
             for port, url in web_targets.items():
                 print(f"\nRunning ffuf against {url}...")
                 run_ffuf(url)
+                print(f"Parsing ffuf results for {url}...")
+                parsed_results = parse_ffuf_json(open('ffuf_output.json').read())
+                for found_url in parsed_results:
+                    print(f"Found URL: {found_url}")
         
     else:
         print("No open ports found.")
