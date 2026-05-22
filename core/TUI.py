@@ -3,7 +3,7 @@ from axto.scene import Scene
 from axto.scene_manager import SceneManager
 from axto.widgets.label import Label
 from axto.widgets.input import Input
-
+import threading
 
 class TUI:
     """
@@ -28,10 +28,29 @@ class TUI:
         menu_scene = Scene()
         menu_scene.add_widget(Label(x=10, y=5, text="Enter target IP:"))
         input_widget = Input(x=30, y=5, width=20, placeholder="192.168.1.1")
-        input_widget.bind("submit", lambda value: self.main_app.set_target(value))
+        input_widget.bind("submit", lambda value: self.start_scan(value))
         menu_scene.add_widget(input_widget)
         self.scene_manager.add_scene("main_menu", menu_scene)
 
+    def start_scan(self, target: str) -> None:
+        self.main_app.set_target(target)
+        self.change_scene("scan_scene")
+        scan_thread = threading.Thread(
+            target=self._scan_worker, 
+            args=(target,),
+            daemon=True
+        )
+        scan_thread.start()
+
+    def _scan_worker(self, target: str) -> None:
+        open_ports = self.main_app.port_scanner.run_scan(target)
+        web_targets = self.main_app.identify_web_targets(open_ports)
+        fuzzing_results = self.main_app.run_directory_fuzzer(web_targets)
+        self.construct_results_scene(open_ports, fuzzing_results)
+        self.change_scene("results_scene")
+        self.app._render_all_widgets() # TODO: Fix when library is updated to support dynamic updates without switching scenes
+        
+    
     def construct_scan_scene(self) -> None:
         scan_scene = Scene()
         scan_scene.add_widget(Label(x=10, y=5, text="Scanning ...", color="31"))
@@ -54,7 +73,7 @@ class TUI:
             results_scene.add_widget(Label(x=12, y=y_offset + 3, text=line))
             y_offset += 1
         self.scene_manager.add_scene("results_scene", results_scene)
-        self.scene_manager.switch_scene("results_scene")
+        #self.scene_manager.switch_scene("results_scene")
 
     def change_scene(self, scene_name: str) -> None:
         self.scene_manager.switch_scene(scene_name)

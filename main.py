@@ -12,17 +12,18 @@ class Vanguard:
         self.port_scanner = PortScanner()
         self.directory_fuzzer = DirectoryFuzzer()
         self.tui_app = TUI(self)
+        self.target = ""
 
     def run(self):
         self.tui_app.run()
 
     def set_target(self, target: str):
         self.target = target
-        self.tui_app.change_scene("scan_scene")
-        open_ports = self.port_scanner.run_scan(target)
-        web_targets = self.identify_web_targets(open_ports)
-        fuzzing_results = self.run_directory_fuzzer(web_targets)
-        self.tui_app.construct_results_scene(open_ports, fuzzing_results)
+        #self.tui_app.change_scene("scan_scene")
+        #open_ports = self.port_scanner.run_scan(target)
+        #web_targets = self.identify_web_targets(open_ports)
+        #fuzzing_results = self.run_directory_fuzzer(web_targets)
+       # self.tui_app.construct_results_scene(open_ports, fuzzing_results)
 
     def identify_web_targets(self, open_ports: dict) -> dict:
         web_targets = {}

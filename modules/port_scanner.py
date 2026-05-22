@@ -3,7 +3,6 @@ import sys
 import xml.etree.ElementTree as ET
 from core.config import DIRECTORIES
 
-
 class PortScanner:
     """A class to handle port scanning using nmap and parsing the results."""
 
