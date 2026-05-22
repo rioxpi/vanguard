@@ -12,7 +12,6 @@ class PortScanner:
         Args:
             target (str): The target to scan
         """
-        print(f"Running nmap against target: {target}")
         xml_output = self.run_nmap(target)
         open_ports = self.parse_nmap_xml(xml_output)
 
@@ -31,10 +30,10 @@ class PortScanner:
             result = subprocess.run([DIRECTORIES["nmap"], '-F', '-oX', '-', target], capture_output=True, text=True, check=True)
             return result.stdout
         except FileNotFoundError:
-            print("nmap is not installed. Please run install.py to download and set up nmap.")
+            raise FileNotFoundError("nmap is not installed. Please run install.py to download and set up nmap.")
             sys.exit(1)
         except Exception as e:
-            print(f"An error occurred while running nmap: {e}")
+            raise Exception(f"An error occurred while running nmap: {e}")
             sys.exit(1)
 
     def parse_nmap_xml(self, xml_data: str) -> dict:
@@ -46,7 +45,6 @@ class PortScanner:
         Returns:
             dict: A dictionary of open ports and their services.
         """
-        print("Parsing nmap XML output...")
         open_ports = {}
         try:
             root = ET.fromstring(xml_data)
@@ -58,6 +56,6 @@ class PortScanner:
                     service_name = service.get('name') if service is not None else 'unknown'
                     open_ports[port_id] = service_name
         except ET.ParseError as e:
-            print(f"Error parsing XML: {e}")
+            raise Exception(f"Error parsing XML: {e}")
 
         return open_ports

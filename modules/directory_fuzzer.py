@@ -14,7 +14,6 @@ class DirectoryFuzzer:
             target (str): The target to scan
         """
         self.run_ffuf(target)
-        print(f"Parsing ffuf results for {target}...")
         parsed_results = self.parse_ffuf_json(open('ffuf_output.json').read())
         return parsed_results
     
@@ -28,7 +27,6 @@ class DirectoryFuzzer:
         Returns:
             list: A list of found URLs.
         """
-        print("Parsing ffuf JSON output...")
         found_urls = []
         try:
             data = json.loads(json_data)
@@ -51,8 +49,8 @@ class DirectoryFuzzer:
         try:
             subprocess.run([DIRECTORIES["ffuf"], '-u', f'{target}/FUZZ', '-w', DIRECTORIES["wordlist"], '-o', 'ffuf_output.json', '-of', 'json'], check=True, capture_output=True, text=True)
         except FileNotFoundError:
-            print("ffuf is not installed. Please run install.py to download and set up ffuf.")
+            raise FileNotFoundError("ffuf is not installed. Please run install.py to download and set up ffuf.")
             sys.exit(1)
         except Exception as e:
-            print(f"An error occurred while running ffuf: {e}")
+            raise Exception(f"An error occurred while running ffuf: {e}")
             sys.exit(1)
