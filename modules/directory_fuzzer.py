@@ -1,8 +1,8 @@
 import json
 import subprocess
 import sys
-import xml.etree.ElementTree as ET
 from core.config import DIRECTORIES
+
 
 class DirectoryFuzzer:
     """A class to handle directory fuzzing using ffuf and parsing the results."""
@@ -14,9 +14,9 @@ class DirectoryFuzzer:
             target (str): The target to scan
         """
         self.run_ffuf(target)
-        parsed_results = self.parse_ffuf_json(open('ffuf_output.json').read())
+        parsed_results = self.parse_ffuf_json(open("ffuf_output.json").read())
         return parsed_results
-    
+
     @staticmethod
     def parse_ffuf_json(json_data: str) -> list:
         """Parses the ffuf JSON output and extracts found URLs.
@@ -30,13 +30,13 @@ class DirectoryFuzzer:
         found_urls = []
         try:
             data = json.loads(json_data)
-            for result in data.get('results', []):
-                url = result.get('url')
+            for result in data.get("results", []):
+                url = result.get("url")
                 if url:
                     found_urls.append(url)
         except json.JSONDecodeError as e:
             print(f"Error parsing JSON: {e}")
-        
+
         return found_urls
 
     @staticmethod
@@ -47,9 +47,26 @@ class DirectoryFuzzer:
             target (str): The target to scan
         """
         try:
-            subprocess.run([DIRECTORIES["ffuf"], '-u', f'{target}/FUZZ', '-w', DIRECTORIES["wordlist"], '-o', 'ffuf_output.json', '-of', 'json'], check=True, capture_output=True, text=True)
+            subprocess.run(
+                [
+                    DIRECTORIES["ffuf"],
+                    "-u",
+                    f"{target}/FUZZ",
+                    "-w",
+                    DIRECTORIES["wordlist"],
+                    "-o",
+                    "ffuf_output.json",
+                    "-of",
+                    "json",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
         except FileNotFoundError:
-            raise FileNotFoundError("ffuf is not installed. Please run install.py to download and set up ffuf.")
+            raise FileNotFoundError(
+                "ffuf is not installed. Please run install.py to download and set up ffuf."
+            )
             sys.exit(1)
         except Exception as e:
             raise Exception(f"An error occurred while running ffuf: {e}")
