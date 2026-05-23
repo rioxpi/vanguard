@@ -26,3 +26,9 @@ DIRECTORIES = {
     "nmap": "programs/nmap/run-nmap.sh",
     "wordlist": "programs/wordlist.txt",
 }
+SECURITY_HEADERS = [
+    "Content-Security-Policy",
+    "X-Frame-Options",
+    "X-Content-Type-Options",
+    "Strict-Transport-Security"
+]

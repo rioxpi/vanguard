@@ -1,6 +1,7 @@
 import os
 from modules.port_scanner import PortScanner
 from modules.directory_fuzzer import DirectoryFuzzer
+from modules.web_analyzer import WebAnalyzer
 from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES
 from core.TUI import TUI
 
@@ -11,6 +12,7 @@ class Vanguard:
     def __init__(self):
         self.port_scanner = PortScanner()
         self.directory_fuzzer = DirectoryFuzzer()
+        self.web_analyzer = WebAnalyzer()
         self.tui_app = TUI(self)
         self.target = ""
 
@@ -42,6 +44,13 @@ class Vanguard:
             os.remove("ffuf_output.json")
         return fuzzing_results
 
+    def run_web_analysis(self, web_targets: list) -> dict:
+        analysis_results = {}
+        for url in web_targets:
+            result = self.web_analyzer.analyze(url)
+            analysis_results[url] = result
+        #print(analysis_results)
+        return analysis_results
 
 if __name__ == "__main__":
     app = Vanguard()

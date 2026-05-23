@@ -46,7 +46,9 @@ class TUI:
         open_ports = self.main_app.port_scanner.run_scan(target)
         web_targets = self.main_app.identify_web_targets(open_ports)
         fuzzing_results = self.main_app.run_directory_fuzzer(web_targets)
-        self.construct_results_scene(open_ports, fuzzing_results)
+        web_analysis_results = self.main_app.run_web_analysis(fuzzing_results)
+        
+        self.construct_results_scene(open_ports, fuzzing_results, web_analysis_results)
         self.change_scene("results_scene")
         self.app._render_all_widgets() # TODO: Fix when library is updated to support dynamic updates without switching scenes
         
@@ -58,22 +60,47 @@ class TUI:
         self.scene_manager.switch_scene("scan_scene")
 
     def construct_results_scene(
-        self, open_ports: dict[str, str], fuzzing_output: list[str]
+        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict]
     ) -> None:
+            
         results_scene = Scene()
-        results_scene.add_widget(Label(x=10, y=5, text="Open Ports:", color="32"))
-        y_offset = 7
+        y_offset = 5
+        
+        
+        # Open ports
+        results_scene.add_widget(Label(x=10, y=y_offset, text="Open Ports:", color="32"))
+        y_offset += 1
         for port, service in open_ports.items():
             results_scene.add_widget(Label(x=12, y=y_offset, text=f"{port}: {service}"))
             y_offset += 1
-        results_scene.add_widget(
-            Label(x=10, y=y_offset + 1, text="Fuzzing Output:", color="32")
-        )
+        
+        # Fuzzing output
+        y_offset += 1 
+        results_scene.add_widget(Label(x=10, y=y_offset, text="Fuzzing Output:", color="32"))
+        y_offset += 1
         for line in fuzzing_output:
-            results_scene.add_widget(Label(x=12, y=y_offset + 3, text=line))
+            results_scene.add_widget(Label(x=12, y=y_offset, text=line))
             y_offset += 1
+            
+        # Web analysis output
+        y_offset += 1
+        results_scene.add_widget(Label(x=10, y=y_offset, text="Web Analysis Output:", color="32"))
+        y_offset += 1
+        for url, analysis in web_analysis_output.items():
+            results_scene.add_widget(Label(x=12, y=y_offset, text=f"{url}:"))
+            y_offset += 1
+            
+            for tech, value in web_analysis_output[url]['technologies'].items():
+                results_scene.add_widget(Label(x=14, y=y_offset, text=f"  {tech}: {value}"))
+                y_offset += 1
+                
+            for header in web_analysis_output[url]['missing_headers']:
+                results_scene.add_widget(Label(x=14, y=y_offset, text=f"  Missing Header: {header}"))
+                y_offset += 1
+                
         self.scene_manager.add_scene("results_scene", results_scene)
-        #self.scene_manager.switch_scene("results_scene")
+        self.scene_manager.switch_scene("results_scene")
+
 
     def change_scene(self, scene_name: str) -> None:
         self.scene_manager.switch_scene(scene_name)
