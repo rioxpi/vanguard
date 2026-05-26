@@ -5,6 +5,7 @@ from axto.widgets.label import Label
 from axto.widgets.input import Input
 from axto.widgets.scroll_list import ScrollList
 import threading
+from axto.terminal import Terminal
 
 class TUI:
     """
@@ -55,7 +56,17 @@ class TUI:
     
     def construct_scan_scene(self) -> None:
         scan_scene = Scene()
-        scan_scene.add_widget(Label(x=10, y=5, text="Scanning ...", color="31"))
+        
+        text = []
+        
+        text.append( " --   ---      /\\      |\\    |  |  |\\    |   ---")
+        text.append("|    |        /  \\     | \\   |  |  | \\   |  |")
+        text.append(" --  |       /----\\    |  \\  |  |  |  \\  |  |  - ")
+        text.append("   | |      /      \\   |   \\ |  |  |   \\ |  |   | ")
+        text.append(" --   ---  /        \\  |    \\|  |  |    \\|   ---  ")
+        
+        for i,v in enumerate(text):
+            scan_scene.add_widget(Label(x=0.45, y=10+i, text=v, color="31"))
         self.scene_manager.add_scene("scan_scene", scan_scene)
 
     def construct_results_scene(
