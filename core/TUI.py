@@ -3,6 +3,7 @@ from axto.scene import Scene
 from axto.scene_manager import SceneManager
 from axto.widgets.label import Label
 from axto.widgets.input import Input
+from axto.widgets.scroll_list import ScrollList
 import threading
 
 class TUI:
@@ -50,14 +51,12 @@ class TUI:
         
         self.construct_results_scene(open_ports, fuzzing_results, web_analysis_results)
         self.change_scene("results_scene")
-        self.app._render_all_widgets() # TODO: Fix when library is updated to support dynamic updates without switching scenes
         
     
     def construct_scan_scene(self) -> None:
         scan_scene = Scene()
         scan_scene.add_widget(Label(x=10, y=5, text="Scanning ...", color="31"))
         self.scene_manager.add_scene("scan_scene", scan_scene)
-        self.scene_manager.switch_scene("scan_scene")
 
     def construct_results_scene(
         self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict]
@@ -68,42 +67,47 @@ class TUI:
         
         
         # Open ports
-        results_scene.add_widget(Label(x=10, y=y_offset, text="Open Ports:", color="32"))
+        results_scene.add_widget(Label(x=0.49, y=y_offset, text="Open Ports:", color="32"))
         y_offset += 1
         for port, service in open_ports.items():
-            results_scene.add_widget(Label(x=12, y=y_offset, text=f"{port}: {service}"))
+            results_scene.add_widget(Label(x=0.49, y=y_offset, text=f"{port}: {service}"))
             y_offset += 1
         
         # Fuzzing output
         y_offset += 1 
-        results_scene.add_widget(Label(x=10, y=y_offset, text="Fuzzing Output:", color="32"))
+        results_scene.add_widget(Label(x=0.49, y=y_offset, text="Fuzzing Output:", color="32"))
         y_offset += 1
         for line in fuzzing_output:
-            results_scene.add_widget(Label(x=12, y=y_offset, text=line))
+            results_scene.add_widget(Label(x=0.49, y=y_offset, text=line))
             y_offset += 1
             
         # Web analysis output
         y_offset += 1
-        results_scene.add_widget(Label(x=10, y=y_offset, text="Web Analysis Output:", color="32"))
+        results_scene.add_widget(Label(x=0.49, y=y_offset, text="Web Analysis Output:", color="32"))
         y_offset += 1
+        
+        web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=100, height=0.4)
+        
+        items = []
+
         for url, analysis in web_analysis_output.items():
-            results_scene.add_widget(Label(x=12, y=y_offset, text=f"{url}:"))
-            y_offset += 1
+            items.append(f"url: {url}:")
             
-            for tech, value in web_analysis_output[url]['technologies'].items():
-                results_scene.add_widget(Label(x=14, y=y_offset, text=f"  {tech}: {value}"))
-                y_offset += 1
+            for tech, value in analysis['technologies'].items():
+                items.append(f"  -> {tech}: {value}")
                 
-            for header in web_analysis_output[url]['missing_headers']:
-                results_scene.add_widget(Label(x=14, y=y_offset, text=f"  Missing Header: {header}"))
-                y_offset += 1
-                
+            for header in analysis['missing_headers']:
+                items.append(f"  [!] Missing Header: {header}")
+        
+        web_analysis_list.items = items
+        results_scene.add_widget(web_analysis_list)
         self.scene_manager.add_scene("results_scene", results_scene)
         self.scene_manager.switch_scene("results_scene")
 
 
     def change_scene(self, scene_name: str) -> None:
-        self.scene_manager.switch_scene(scene_name)
+        self.app.dispatch_to_main_thread(self.scene_manager.switch_scene, scene_name)
+        #self.scene_manager.switch_scene(scene_name)
 
     def run(self) -> None:
         self.app.run()
