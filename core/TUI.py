@@ -5,7 +5,6 @@ from axto.widgets.label import Label
 from axto.widgets.input import Input
 from axto.widgets.scroll_list import ScrollList
 import threading
-from axto.terminal import Terminal
 
 class TUI:
     """
@@ -45,12 +44,13 @@ class TUI:
         scan_thread.start()
 
     def _scan_worker(self, target: str) -> None:
-        open_ports = self.main_app.port_scanner.run_scan(target)
+        open_ports = self.main_app.port_scanner.quick_scan(target)
         web_targets = self.main_app.identify_web_targets(open_ports)
+        aggressive_port_scan = self.main_app.run_port_scanner_aggressive(open_ports)
         fuzzing_results = self.main_app.run_directory_fuzzer(web_targets)
         web_analysis_results = self.main_app.run_web_analysis(fuzzing_results)
         
-        self.construct_results_scene(open_ports, fuzzing_results, web_analysis_results)
+        self.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan)
         self.change_scene("results_scene")
         
     
@@ -59,7 +59,7 @@ class TUI:
         
         text = []
         
-        text.append( " --   ---      /\\      |\\    |  |  |\\    |   ---")
+        text.append(" --   ---      /\\      |\\    |  |  |\\    |   ---")
         text.append("|    |        /  \\     | \\   |  |  | \\   |  |")
         text.append(" --  |       /----\\    |  \\  |  |  |  \\  |  |  - ")
         text.append("   | |      /      \\   |   \\ |  |  |   \\ |  |   | ")
@@ -70,12 +70,11 @@ class TUI:
         self.scene_manager.add_scene("scan_scene", scan_scene)
 
     def construct_results_scene(
-        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict]
+        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}
     ) -> None:
             
         results_scene = Scene()
         y_offset = 5
-        
         
         # Open ports
         results_scene.add_widget(Label(x=0.49, y=y_offset, text="Open Ports:", color="32"))
@@ -94,10 +93,10 @@ class TUI:
             
         # Web analysis output
         y_offset += 1
-        results_scene.add_widget(Label(x=0.49, y=y_offset, text="Web Analysis Output:", color="32"))
+        #results_scene.add_widget(Label(x=0.49, y=y_offset, text="Web Analysis Output:", color="32"))
         y_offset += 1
         
-        web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=100, height=0.4)
+        web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=1.0, height=0.5)
         
         items = []
 
@@ -110,8 +109,38 @@ class TUI:
             for header in analysis['missing_headers']:
                 items.append(f"  [!] Missing Header: {header}")
         
+        # nmap aggressive
+        if nmap_aggressive_output:
+            items.append("")
+            items.append("=== DETAILED REPORT ===")
+            
+            for ip, host_data in nmap_aggressive_output.items():
+                mac_info = f" ({host_data['mac']})" if host_data['mac'] else ""
+                hostname_info = f" [{', '.join(host_data['hostnames'])}]" if host_data['hostnames'] else ""
+                items.append(f"Host: {ip}{mac_info}{hostname_info}")
+                
+                # OS
+                if host_data.get("os_matches"):
+                    items.append("  OS Detection:")
+                    for os in host_data["os_matches"]:
+                        items.append(f"    - {os['name']} (Accuracy: {os['accuracy']}%)")
+                
+                # NSE
+                if host_data.get("ports"):
+                    items.append("  Detailed Ports & Scripts:")
+                    for port in host_data["ports"]:
+                        items.append(f"    - {port['portid']}/{port['protocol']} -> {port['service']} | {port['version']}")
+                        
+                        if port.get("scripts"):
+                            for script in port["scripts"]:
+                                items.append(f"      [{script['script_name']}]")
+                                for output_line in script['script_output'].split('\n'):
+                                    if output_line.strip():
+                                        items.append(f"        {output_line.strip()}")
+
         web_analysis_list.items = items
         results_scene.add_widget(web_analysis_list)
+        
         self.scene_manager.add_scene("results_scene", results_scene)
         self.scene_manager.switch_scene("results_scene")
 
