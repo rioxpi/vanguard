@@ -37,6 +37,9 @@ class DirectoryFuzzer:
         except json.JSONDecodeError as e:
             print(f"Error parsing JSON: {e}")
 
+        if not found_urls:
+            found_urls = ["Nothing to show!"]
+        
         return found_urls
 
     @staticmethod
@@ -67,7 +70,5 @@ class DirectoryFuzzer:
             raise FileNotFoundError(
                 "ffuf is not installed. Please run install.py to download and set up ffuf."
             )
-            sys.exit(1)
         except Exception as e:
             raise Exception(f"An error occurred while running ffuf: {e}")
-            sys.exit(1)

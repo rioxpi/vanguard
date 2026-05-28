@@ -45,11 +45,17 @@ class TUI:
 
     def _scan_worker(self, target: str) -> None:
         open_ports = self.main_app.port_scanner.quick_scan(target)
-        web_targets = self.main_app.identify_web_targets(open_ports)
-        aggressive_port_scan = self.main_app.run_port_scanner_aggressive(open_ports)
-        fuzzing_results = self.main_app.run_directory_fuzzer(web_targets)
-        web_analysis_results = self.main_app.run_web_analysis(fuzzing_results)
         
+        if open_ports:
+            web_targets = self.main_app.identify_web_targets(open_ports)
+            aggressive_port_scan = self.main_app.run_port_scanner_aggressive(open_ports)
+            fuzzing_results = self.main_app.run_directory_fuzzer(web_targets)
+            web_analysis_results = self.main_app.run_web_analysis(fuzzing_results)
+        else:
+            open_ports = {"WARNING" : "Host has no open ports"}
+            fuzzing_results = ["Nothing to show!"]
+            web_analysis_results = {}
+            aggressive_port_scan = {}
         self.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan)
         self.change_scene("results_scene")
         
