@@ -27,8 +27,8 @@ class TUI:
 
     def construct_main_menu(self) -> None:
         menu_scene = Scene()
-        menu_scene.add_widget(Label(x=10, y=5, text="Enter target IP:"))
-        input_widget = Input(x=30, y=5, width=20, placeholder="192.168.1.1")
+        menu_scene.add_widget(Label(x=0.39, y=0.49, text="Enter target IP:"))
+        input_widget = Input(x=0.49, y=0.49, width=20, placeholder="192.168.1.1")
         input_widget.bind("submit", lambda value: self.start_scan(value))
         menu_scene.add_widget(input_widget)
         self.scene_manager.add_scene("main_menu", menu_scene)
