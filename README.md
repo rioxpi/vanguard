@@ -11,6 +11,7 @@ Vanguard is a Python-based reconnaissance utility that automates:
 - XML parsing,
 - web service detection,
 - directory fuzzing with ffuf.
+- Scanning headers
 
 ---
 
@@ -22,6 +23,9 @@ Vanguard is a Python-based reconnaissance utility that automates:
 - Web-service detection based on ports and service names
 - ffuf-based fuzzing against discovered HTTP/HTTPS targets
 - Local `programs/` directory for downloaded dependencies
+- Aggressive nmap port scanning
+- Text User Interface
+- Analysing web headers
 
 ---
 
@@ -33,10 +37,12 @@ Vanguard is a Python-based reconnaissance utility that automates:
 ├── install.py
 ├── launcher.py
 ├── core/
-│   └── config.py 
+│   ├── config.py 
+│   └── TUI.py
 ├── modules/
 │   ├── port_scanner.py
-│   └── directory_fuzzer.py
+│   ├── directory_fuzzer.py
+│   └── web_analyzer.py
 ├── main.py
 ├── README.md
 └── programs/   # created locally after installation
@@ -45,32 +51,48 @@ Vanguard is a Python-based reconnaissance utility that automates:
 ### Files
 
 #### `install.py`
+
 Downloads:
 - portable nmap,
 - ffuf,
 - SecLists wordlist.
 
 #### `main.py`
+
 Responsible for:
 - coordinating all modules
 - running the full reconnaissance workflow
 
 #### `config.py`
+
 Contains default variables:
 - web target ports and services
 - directories for downloaded programs
 
+### TUI.py
+
+Responsible for:
+- Text User Interface unsing axto library
+
 #### `directory_fuzzer.py`
+
 Responsible for:
 - launching ffuf
 - parsing ffuf output
 
 #### `port_scanner.py`
+
 Responsible for:
 - launching nmap
 - parsing nmap output
 
+### `web_analyzer.py`
+
+Responsible for:
+- Analysing web headers
+
 ### `launcher.py`
+
 Placeholder for future automation and orchestration features.
 
 ---
@@ -120,20 +142,28 @@ python main.py example.com
 
 ## TODO
 
-- [ ] Rewrite UI into a TUI using [axto](https://github.com/rioxpi/axto)
+- [X] Rewrite UI into a TUI using [axto](https://github.com/rioxpi/axto)
 - [X] Add ffuf output parser
 - [ ] Add automated launcher
 - [ ] Improve error handling
 - [ ] Add custom wordlist support
-- [ ] Add Agressive port scanning
+- [X] Add Agressive port scanning
 
 ---
 
 ## CHANGELOG
+
 ### VERSION 0.0.1
+
 1. Add port scanning using nmap
 2. Add directory fuzzing using ffuf
 3. Parsing nmap&ffuf oputput
+
+### VERSION 0.1.0
+
+1. Add UI using Axto library
+2. Add web headers analyser
+3. Add aggressive nmap port scanning
 
 ---
 
