@@ -4,7 +4,7 @@ from modules.directory_fuzzer import DirectoryFuzzer
 from modules.web_analyzer import WebAnalyzer
 from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES
 from core.TUI import TUI
-
+import threading
 
 class Vanguard:
     """The main class for the Vanguard application, orchestrating all processes."""
@@ -21,7 +21,29 @@ class Vanguard:
 
     def set_target(self, target: str):
         self.target = target
+        scan_thread = threading.Thread(
+            target=self._scan_worker, 
+            args=(target,),
+            daemon=True
+        )
+        scan_thread.start()
 
+    def _scan_worker(self, target: str):
+        open_ports = self.port_scanner.quick_scan(target)
+        
+        if open_ports:
+            web_targets = self.identify_web_targets(open_ports)
+            aggressive_port_scan = self.run_port_scanner_aggressive(open_ports)
+            fuzzing_results = self.run_directory_fuzzer(web_targets)
+            web_analysis_results = self.run_web_analysis(fuzzing_results)
+        else:
+            open_ports = {"WARNING" : "Host has no open ports"}
+            fuzzing_results = ["Nothing to show!"]
+            web_analysis_results = {}
+            aggressive_port_scan = {}
+        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan)
+        self.tui_app.change_scene("results_scene")
+    
     def identify_web_targets(self, open_ports: dict) -> dict:
         web_targets = {}
         for port, service in open_ports.items():
