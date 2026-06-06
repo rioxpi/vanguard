@@ -87,7 +87,9 @@ def download_ffuf() -> None:
     except Exception as e:
         print(f"An error occurred while downloading the wordlist: {e}")
 
-
-if __name__ == "__main__":
+def install() -> None:
     downlad_nmap()
     download_ffuf()
+
+if __name__ == "__main__":
+    install()
