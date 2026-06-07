@@ -30,6 +30,14 @@ class WebAnalyzer:
                     results['missing_headers'].append(header)
             
             return results
-            
+        except requests.exceptions.ReadTimeout:
+            results['status'] = 'timeout'
+            results['error'] = 'Host did not respond within the specified time (10s).'
+            return results
+
+        except requests.exceptions.ConnectionError:
+            results['status'] = 'connection_error'
+            results['error'] = 'Cannot connect to the host.'
+            return results
         except requests.RequestException as e:
             raise Exception(f"Error analyzing {url}: {str(e)}")

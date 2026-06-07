@@ -54,7 +54,7 @@ class TUI:
         self.scene_manager.add_scene("scan_scene", scan_scene)
 
     def construct_results_scene(
-        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}
+        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}
     ) -> None:
             
         results_scene = Scene()
@@ -121,6 +121,12 @@ class TUI:
                                 for output_line in script['script_output'].split('\n'):
                                     if output_line.strip():
                                         items.append(f"        {output_line.strip()}")
+        
+        if subdomain_results:
+            items.append("")
+            items.append("=== SUBDOMAIN RESULTS ===")
+            for subdomain, ip in subdomain_results.items():
+                items.append(f"{subdomain} -> {ip}")
 
         web_analysis_list.items = items
         results_scene.add_widget(web_analysis_list)

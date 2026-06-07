@@ -9,6 +9,7 @@ URLS = {
     "nmap": "https://github.com/ernw/static-toolbox/releases/download/nmap-v7.94SVN/nmap-7.94SVN-x86_64-portable.zip",
     "ffuf": "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_amd64.tar.gz",
     "wordlist": "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-large-directories.txt",
+    "subfinder": "https://github.com/projectdiscovery/subfinder/releases/download/v2.14.0/subfinder_2.14.0_linux_amd64.zip"
 }
 
 
@@ -87,9 +88,39 @@ def download_ffuf() -> None:
     except Exception as e:
         print(f"An error occurred while downloading the wordlist: {e}")
 
+def download_subfinder() -> None:
+    """
+    Downloads and extracts the subfinder binary.
+    """
+    target_dir = os.path.join(PROGRAMS_DIR, "subfinder")
+    zip_path = "subfinder.zip"
+
+    os.makedirs(target_dir, exist_ok=True)
+    print("Downloading subfinder 2.14.0...")
+    req = urllib.request.Request(URLS["subfinder"])
+
+    try:
+        with urllib.request.urlopen(req) as response, open(zip_path, "wb") as out_file:
+            out_file.write(response.read())
+
+        print("Download complete")
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(target_dir)
+
+        subfinder_binary = os.path.join(target_dir, "subfinder")
+        if os.path.exists(subfinder_binary):
+            st = os.stat(subfinder_binary)
+            os.chmod(subfinder_binary, st.st_mode | stat.S_IEXEC)
+    except Exception as e:
+        print(f"An error occurred during download or extraction: {e}")
+    finally:
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+    
 def install() -> None:
     downlad_nmap()
     download_ffuf()
+    download_subfinder()
 
 if __name__ == "__main__":
     install()

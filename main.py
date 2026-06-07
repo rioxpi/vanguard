@@ -2,6 +2,7 @@ import os
 from modules.port_scanner import PortScanner
 from modules.directory_fuzzer import DirectoryFuzzer
 from modules.web_analyzer import WebAnalyzer
+from modules.subdomain_finder import SubdomainFinder
 from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES
 from core.TUI import TUI
 import threading
@@ -13,6 +14,7 @@ class Vanguard:
         self.port_scanner = PortScanner()
         self.directory_fuzzer = DirectoryFuzzer()
         self.web_analyzer = WebAnalyzer()
+        self.subdomain_finder = SubdomainFinder()
         self.tui_app = TUI(self)
         self.target = ""
 
@@ -36,12 +38,16 @@ class Vanguard:
             aggressive_port_scan = self.run_port_scanner_aggressive(open_ports)
             fuzzing_results = self.run_directory_fuzzer(web_targets)
             web_analysis_results = self.run_web_analysis(fuzzing_results)
+
+            if web_targets:
+                subdomain_results = self.subdomain_finder.get_subdomains(target)
         else:
             open_ports = {"WARNING" : "Host has no open ports"}
             fuzzing_results = ["Nothing to show!"]
             web_analysis_results = {}
             aggressive_port_scan = {}
-        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan)
+            subdomain_results = {}
+        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan, subdomain_results)
         self.tui_app.change_scene("results_scene")
     
     def identify_web_targets(self, open_ports: dict) -> dict:
@@ -62,6 +68,8 @@ class Vanguard:
         return fuzzing_results
 
     def run_web_analysis(self, web_targets: list) -> dict:
+        if not web_targets:
+            return {}
         analysis_results = {}
         for url in web_targets:
             result = self.web_analyzer.analyze(url)
