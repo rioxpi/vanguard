@@ -4,7 +4,9 @@ from axto.scene_manager import SceneManager
 from axto.widgets.label import Label
 from axto.widgets.input import Input
 from axto.widgets.scroll_list import ScrollList
-import threading
+from axto.widgets.button import Button
+from core.config import DIRECTORIES
+from pathlib import Path
 
 class TUI:
     """
@@ -20,6 +22,7 @@ class TUI:
         self.app = Engine()
         self.screen = None
         self.scene_manager = SceneManager(self.app)
+        self.construct_settings_scene()
         self.construct_main_menu()
         self.construct_scan_scene()
         self.scene_manager.switch_scene("main_menu")
@@ -31,12 +34,24 @@ class TUI:
         input_widget = Input(x=0.49, y=0.49, width=20, placeholder="192.168.1.1")
         input_widget.bind("submit", lambda value: self.start_scan(value))
         menu_scene.add_widget(input_widget)
+        button = Button(x=0.5, y=0.6, text="SETTINGS")
+        button.bind("press", lambda: self.scene_manager.switch_scene("settings_scene"))
+        menu_scene.add_widget(button)
         self.scene_manager.add_scene("main_menu", menu_scene)
 
     def start_scan(self, target: str) -> None:
         self.main_app.set_target(target)
-        self.change_scene("scan_scene")
-        
+        self.scene_manager.switch_scene("scan_scene")       
+    
+    def construct_settings_scene(self) -> None:
+        settings_scene = Scene()
+        custom_wordlist = Input(x=0.49, y=0.5, width=25, placeholder="Custom wordlist")
+        custom_wordlist.bind("submit", lambda key: DIRECTORIES.__setitem__("wordlist", key) if Path(key).exists() else custom_wordlist.trigger_error_flash())
+        settings_scene.add_widget(custom_wordlist)
+        back_button = Button(x=0.5, y=0.6, text="BACK")
+        back_button.bind("press", lambda: self.scene_manager.switch_scene("main_menu"))
+        settings_scene.add_widget(back_button)
+        self.scene_manager.add_scene("settings_scene", settings_scene)
     
     def construct_scan_scene(self) -> None:
         scan_scene = Scene()
