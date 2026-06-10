@@ -64,7 +64,7 @@ class SubdomainFinder:
             return {"error": "No active subdomains found!"}
         return active_subdomains
 
-    def get_subdomains(self, domain: str) -> dict:
+    def find_subdomains(self, domain: str) -> dict:
         """Main method to fetch and validate subdomains for the target domain."""
         subdomains = self.fetch_subdomains(domain)
         if isinstance(subdomains, list) and subdomains and not subdomains[0].startswith("crt.sh returned status code"):
