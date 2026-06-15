@@ -7,11 +7,11 @@
 
 Vanguard is a Python-based reconnaissance utility that automates:
 
-- port scanning using nmap,
-- XML parsing,
-- web service detection,
-- directory fuzzing with ffuf.
-- Scanning headers
+- port scanning using nmap
+- XML parsing
+- web service detection
+- directory fuzzing with ffuf
+- scanning headers
 
 ---
 
@@ -25,7 +25,7 @@ Vanguard is a Python-based reconnaissance utility that automates:
 - Local `programs/` directory for downloaded dependencies
 - Aggressive nmap port scanning
 - Text User Interface
-- Analysing web headers
+- Analyzing web headers
 
 ---
 
@@ -42,6 +42,7 @@ Vanguard is a Python-based reconnaissance utility that automates:
 ├── modules/
 │   ├── port_scanner.py
 │   ├── directory_fuzzer.py
+│   ├── subdomain_finder.py
 │   └── web_analyzer.py
 ├── main.py
 ├── README.md
@@ -72,7 +73,7 @@ Contains default variables:
 ### TUI.py
 
 Responsible for:
-- Text User Interface unsing axto library
+- Text User Interface uning the axto library
 
 #### `directory_fuzzer.py`
 
@@ -86,14 +87,21 @@ Responsible for:
 - launching nmap
 - parsing nmap output
 
-### `web_analyzer.py`
+#### `subdomain_finder.py`
+
+Responsible for:
+- searching for domains using `subfinder`
+
+#### `web_analyzer.py`
 
 Responsible for:
 - Analysing web headers
 
-### `launcher.py`
+#### `launcher.py`
 
-Placeholder for future automation and orchestration features.
+Responsible for:
+- checking SHA 256 checksum
+- running main program
 
 ---
 
@@ -144,10 +152,16 @@ python main.py example.com
 
 - [X] Rewrite UI into a TUI using [axto](https://github.com/rioxpi/axto)
 - [X] Add ffuf output parser
-- [ ] Add automated launcher
-- [ ] Improve error handling
-- [ ] Add custom wordlist support
-- [X] Add Agressive port scanning
+- [X] Add automated launcher
+- [X] Improve error handling
+- [X] Add custom wordlist support
+- [X] Add Aggressive port scanning
+- [ ] Add saving to a markdown file
+- [ ] Add full & fast scan
+- [ ] Add ssh module
+- [ ] Add ftp module
+- [ ] Add smtp module
+- [ ] Add the ability to disable nmap aggressive scan
 
 ---
 
@@ -157,13 +171,21 @@ python main.py example.com
 
 1. Add port scanning using nmap
 2. Add directory fuzzing using ffuf
-3. Parsing nmap&ffuf oputput
+3. Parse nmap & ffuf output
 
 ### VERSION 0.1.0
 
 1. Add UI using Axto library
 2. Add web headers analyser
 3. Add aggressive nmap port scanning
+
+### VERSION 0.1.1
+
+1. Add automatic launcher
+2. Add the ability to set custom fuzzing wordlist
+3. Add threads
+4. Add a checkbox to disable fuzzing
+5. Add subdomain finder
 
 ---
 
