@@ -8,7 +8,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class SubdomainFinder:
     def fetch_subdomains(self, domain):
-        """Fetches subdomains from crt.sh for the given domain.
+        """Fetches subdomains from subfinder.
 
         Args:
             domain (str): The target domain to search for subdomains.
@@ -37,10 +37,8 @@ class SubdomainFinder:
             
         except subprocess.TimeoutExpired:
             process.kill()
-            print("[!] Timeout: Subfinder przekroczył limit czasu (60s).")
         except Exception as e:
-            print(f"[!] Wystąpił nieoczekiwany błąd: {e}")
-
+            return [f"ERROR: {e}"]
         return list(subdomains)
     
     def validate_subdomain(self, subdomains: list) -> dict:
@@ -67,8 +65,8 @@ class SubdomainFinder:
     def find_subdomains(self, domain: str) -> dict:
         """Main method to fetch and validate subdomains for the target domain."""
         subdomains = self.fetch_subdomains(domain)
-        if isinstance(subdomains, list) and subdomains and not subdomains[0].startswith("crt.sh returned status code"):
+        if isinstance(subdomains, list) and subdomains:
             validated_subdomains = self.validate_subdomain(subdomains)
             return validated_subdomains
         else:
-            return {"error": "No subdomains found or an error occurred while fetching from crt.sh."}
+            return {"error": "No subdomains found or an error occurred"}

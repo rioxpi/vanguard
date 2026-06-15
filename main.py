@@ -3,7 +3,7 @@ from modules.port_scanner import PortScanner
 from modules.directory_fuzzer import DirectoryFuzzer
 from modules.web_analyzer import WebAnalyzer
 from modules.subdomain_finder import SubdomainFinder
-from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES
+from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES, ACTIVE_MODULES
 from concurrent.futures import ThreadPoolExecutor
 from core.TUI import TUI
 import threading
@@ -40,14 +40,18 @@ class Vanguard:
             
             with ThreadPoolExecutor(max_workers=3) as executor:
                 future_aggressive_scan = executor.submit(self.run_port_scanner_aggressive, open_ports)
-                future_fuzzing = executor.submit(self.run_directory_fuzzer, web_targets)
-                future_web_analysis = executor.submit(self.run_web_analysis, list(web_targets.values()))
+                if ACTIVE_MODULES["ffuf"]:
+                    future_fuzzing = executor.submit(self.run_directory_fuzzer, web_targets)
+                    future_web_analysis = executor.submit(self.run_web_analysis, list(web_targets.values()))
                 future_subdomain_finding = executor.submit(self.subdomain_finder.find_subdomains, target)
                     
                 aggressive_port_scan = future_aggressive_scan.result()
-                fuzzing_results = future_fuzzing.result()
-                web_analysis_results = future_web_analysis.result()
-
+                if ACTIVE_MODULES["ffuf"]:
+                    fuzzing_results = future_fuzzing.result()
+                    web_analysis_results = future_web_analysis.result()
+                else:
+                    fuzzing_results = ["THIS MODULE IS DISABLED"]
+                    web_analysis_results = {}
                 subdomain_results = future_subdomain_finding.result()
         else:
             open_ports = {"WARNING" : "Host has no open ports"}

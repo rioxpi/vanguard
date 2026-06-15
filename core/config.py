@@ -43,3 +43,11 @@ SHA_256_HASHES = {
     "subfinder": "88e6b07d47afee46804db926f46bba99eadee74e0ccb32b2f792bfea62b9da0c",
     "wordlist": "a85795c71df1269772054dfc13edda2fc80edaf24d59abcd98c8a62dd76d4820"
 }
+
+ACTIVE_MODULES = {
+    "nmap_base" : True,
+    "nmap_aggressive" : True,
+    "ffuf" : True,
+    "subdomain" : True,
+    "web_analyzer" : True
+}

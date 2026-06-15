@@ -1,11 +1,8 @@
 from axto import Engine
 from axto.scene import Scene
 from axto.scene_manager import SceneManager
-from axto.widgets.label import Label
-from axto.widgets.input import Input
-from axto.widgets.scroll_list import ScrollList
-from axto.widgets.button import Button
-from core.config import DIRECTORIES
+from axto.widgets import Label, Input, ScrollList, Button, CheckBox
+from core.config import DIRECTORIES, ACTIVE_MODULES
 from pathlib import Path
 
 class TUI:
@@ -47,6 +44,9 @@ class TUI:
         settings_scene = Scene()
         custom_wordlist = Input(x=0.49, y=0.5, width=25, placeholder="Custom wordlist")
         custom_wordlist.bind("submit", lambda key: DIRECTORIES.__setitem__("wordlist", key) if Path(key).exists() else custom_wordlist.trigger_error_flash())
+        enable_fuzzing = CheckBox(x=0.49, y=0.4, label="Enable Fuzzing", checked=ACTIVE_MODULES["ffuf"])
+        enable_fuzzing.bind("change", lambda state: ACTIVE_MODULES.__setitem__("ffuf", state))
+        settings_scene.add_widget(enable_fuzzing)
         settings_scene.add_widget(custom_wordlist)
         back_button = Button(x=0.5, y=0.6, text="BACK")
         back_button.bind("press", lambda: self.scene_manager.switch_scene("main_menu"))
