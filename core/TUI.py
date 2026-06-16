@@ -69,7 +69,7 @@ class TUI:
         self.scene_manager.add_scene("scan_scene", scan_scene)
 
     def construct_results_scene(
-        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}
+        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []
     ) -> None:
             
         results_scene = Scene()
@@ -143,6 +143,12 @@ class TUI:
             for subdomain, ip in subdomain_results.items():
                 items.append(f"{subdomain} -> {ip}")
 
+        if ftp_spider:
+            items.append("")
+            items.append("=== FTP FILES ===")
+            for i in ftp_spider:
+                items.append(i)
+        
         web_analysis_list.items = items
         results_scene.add_widget(web_analysis_list)
         

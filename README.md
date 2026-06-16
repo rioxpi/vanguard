@@ -73,7 +73,7 @@ Contains default variables:
 ### TUI.py
 
 Responsible for:
-- Text User Interface uning the axto library
+- Text User Interface using the axto library
 
 #### `directory_fuzzer.py`
 
@@ -95,7 +95,7 @@ Responsible for:
 #### `web_analyzer.py`
 
 Responsible for:
-- Analysing web headers
+- Analyzing web headers
 
 #### `launcher.py`
 
@@ -176,7 +176,7 @@ python main.py example.com
 ### VERSION 0.1.0
 
 1. Add UI using Axto library
-2. Add web headers analyser
+2. Add web headers analyzer
 3. Add aggressive nmap port scanning
 
 ### VERSION 0.1.1

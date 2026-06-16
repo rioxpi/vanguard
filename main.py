@@ -3,6 +3,7 @@ from modules.port_scanner import PortScanner
 from modules.directory_fuzzer import DirectoryFuzzer
 from modules.web_analyzer import WebAnalyzer
 from modules.subdomain_finder import SubdomainFinder
+from modules.ftp_spider import FtpSpider
 from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES, ACTIVE_MODULES
 from concurrent.futures import ThreadPoolExecutor
 from core.TUI import TUI
@@ -16,6 +17,7 @@ class Vanguard:
         self.directory_fuzzer = DirectoryFuzzer()
         self.web_analyzer = WebAnalyzer()
         self.subdomain_finder = SubdomainFinder()
+        self.ftp_spider = FtpSpider()
         self.tui_app = TUI(self)
         self.target = ""
 
@@ -44,6 +46,8 @@ class Vanguard:
                     future_fuzzing = executor.submit(self.run_directory_fuzzer, web_targets)
                     future_web_analysis = executor.submit(self.run_web_analysis, list(web_targets.values()))
                 future_subdomain_finding = executor.submit(self.subdomain_finder.find_subdomains, target)
+                if '21' in open_ports:
+                    future_ftp_spider = executor.submit(self.ftp_spider.scan, target)
                     
                 aggressive_port_scan = future_aggressive_scan.result()
                 if ACTIVE_MODULES["ffuf"]:
@@ -52,6 +56,12 @@ class Vanguard:
                 else:
                     fuzzing_results = ["THIS MODULE IS DISABLED"]
                     web_analysis_results = {}
+                
+                if '21' in open_ports:
+                    ftp_spider = future_ftp_spider.result()
+                else:
+                    ftp_spider = []
+                
                 subdomain_results = future_subdomain_finding.result()
         else:
             open_ports = {"WARNING" : "Host has no open ports"}
@@ -59,7 +69,7 @@ class Vanguard:
             web_analysis_results = {}
             aggressive_port_scan = {}
             subdomain_results = {}
-        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan, subdomain_results)
+        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan, subdomain_results, ftp_spider)
         self.tui_app.change_scene("results_scene")
     
     def identify_web_targets(self, open_ports: dict) -> dict:
