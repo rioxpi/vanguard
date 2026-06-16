@@ -41,15 +41,19 @@ class Vanguard:
             subdomain_results = {}
             
             with ThreadPoolExecutor(max_workers=3) as executor:
-                future_aggressive_scan = executor.submit(self.run_port_scanner_aggressive, open_ports)
+                if ACTIVE_MODULES["nmap_aggressive"]:
+                    future_aggressive_scan = executor.submit(self.run_port_scanner_aggressive, open_ports)
                 if ACTIVE_MODULES["ffuf"]:
                     future_fuzzing = executor.submit(self.run_directory_fuzzer, web_targets)
                     future_web_analysis = executor.submit(self.run_web_analysis, list(web_targets.values()))
                 future_subdomain_finding = executor.submit(self.subdomain_finder.find_subdomains, target)
-                if '21' in open_ports:
+                if '21' in open_ports:                    
                     future_ftp_spider = executor.submit(self.ftp_spider.scan, target)
-                    
-                aggressive_port_scan = future_aggressive_scan.result()
+                
+                if ACTIVE_MODULES["nmap_aggressive"]:
+                    aggressive_port_scan = future_aggressive_scan.result()
+                else:
+                    aggressive_port_scan = {}
                 if ACTIVE_MODULES["ffuf"]:
                     fuzzing_results = future_fuzzing.result()
                     web_analysis_results = future_web_analysis.result()
@@ -59,7 +63,7 @@ class Vanguard:
                 
                 if '21' in open_ports:
                     ftp_spider = future_ftp_spider.result()
-                else:
+                else:                    
                     ftp_spider = []
                 
                 subdomain_results = future_subdomain_finding.result()
@@ -69,6 +73,7 @@ class Vanguard:
             web_analysis_results = {}
             aggressive_port_scan = {}
             subdomain_results = {}
+            ftp_spider = []
         self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan, subdomain_results, ftp_spider)
         self.tui_app.change_scene("results_scene")
     

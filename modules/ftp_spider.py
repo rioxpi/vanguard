@@ -1,6 +1,5 @@
 from ftplib import FTP 
 
-
 class FtpSpider:
     def check_anonymous_login(self, target):
         try:

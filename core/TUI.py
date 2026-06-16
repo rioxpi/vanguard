@@ -46,6 +46,9 @@ class TUI:
         custom_wordlist.bind("submit", lambda key: DIRECTORIES.__setitem__("wordlist", key) if Path(key).exists() else custom_wordlist.trigger_error_flash())
         enable_fuzzing = CheckBox(x=0.49, y=0.4, label="Enable Fuzzing", checked=ACTIVE_MODULES["ffuf"])
         enable_fuzzing.bind("change", lambda state: ACTIVE_MODULES.__setitem__("ffuf", state))
+        enable_nmap_aggressive_scan = CheckBox(x=0.49, y=0.3, label="Enable Nmap aggressive scanning", checked=ACTIVE_MODULES["nmap_aggressive"])
+        enable_nmap_aggressive_scan.bind("change", lambda state: ACTIVE_MODULES.__setitem__("nmap_aggressive", state))
+        settings_scene.add_widget(enable_nmap_aggressive_scan)
         settings_scene.add_widget(enable_fuzzing)
         settings_scene.add_widget(custom_wordlist)
         back_button = Button(x=0.5, y=0.6, text="BACK")
@@ -136,6 +139,10 @@ class TUI:
                                 for output_line in script['script_output'].split('\n'):
                                     if output_line.strip():
                                         items.append(f"        {output_line.strip()}")
+        elif ACTIVE_MODULES["nmap_aggressive"] == False:
+            items.append("")
+            items.append("=== DETAILED REPORT ===")
+            items.append("THIS MODULE IS DISABLED")
         
         if subdomain_results:
             items.append("")
