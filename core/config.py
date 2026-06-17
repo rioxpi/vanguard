@@ -51,3 +51,5 @@ ACTIVE_MODULES = {
     "subdomain" : True,
     "web_analyzer" : True
 }
+
+NMAP_AGGRESSIVE_OPTION = {'value' : '-T4'}

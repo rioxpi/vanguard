@@ -4,7 +4,7 @@ from modules.directory_fuzzer import DirectoryFuzzer
 from modules.web_analyzer import WebAnalyzer
 from modules.subdomain_finder import SubdomainFinder
 from modules.ftp_spider import FtpSpider
-from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES, ACTIVE_MODULES
+from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES, ACTIVE_MODULES, NMAP_AGGRESSIVE_OPTION
 from concurrent.futures import ThreadPoolExecutor
 from core.TUI import TUI
 import threading

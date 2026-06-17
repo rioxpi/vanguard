@@ -1,8 +1,8 @@
 from axto import Engine
 from axto.scene import Scene
 from axto.scene_manager import SceneManager
-from axto.widgets import Label, Input, ScrollList, Button, CheckBox
-from core.config import DIRECTORIES, ACTIVE_MODULES
+from axto.widgets import Label, Input, ScrollList, Button, CheckBox, Select
+from core.config import DIRECTORIES, ACTIVE_MODULES, NMAP_AGGRESSIVE_OPTION
 from pathlib import Path
 
 class TUI:
@@ -42,12 +42,16 @@ class TUI:
     
     def construct_settings_scene(self) -> None:
         settings_scene = Scene()
+        nmap_options = ["T1 (sneaky)", "T2 (polite)", "T3 (normal)", "T4 (aggressive)", "T5 (insane)"]
         custom_wordlist = Input(x=0.49, y=0.5, width=25, placeholder="Custom wordlist")
         custom_wordlist.bind("submit", lambda key: DIRECTORIES.__setitem__("wordlist", key) if Path(key).exists() else custom_wordlist.trigger_error_flash())
         enable_fuzzing = CheckBox(x=0.49, y=0.4, label="Enable Fuzzing", checked=ACTIVE_MODULES["ffuf"])
         enable_fuzzing.bind("change", lambda state: ACTIVE_MODULES.__setitem__("ffuf", state))
         enable_nmap_aggressive_scan = CheckBox(x=0.49, y=0.3, label="Enable Nmap aggressive scanning", checked=ACTIVE_MODULES["nmap_aggressive"])
         enable_nmap_aggressive_scan.bind("change", lambda state: ACTIVE_MODULES.__setitem__("nmap_aggressive", state))
+        nmap_aggressive_option = Select(x=0.49, y=0.2, width=50, options=nmap_options, default_index=3)
+        nmap_aggressive_option.bind("change", lambda val, idx: NMAP_AGGRESSIVE_OPTION.__setitem__("value", f"-{val[0]}{val[1]}"))
+        settings_scene.add_widget(nmap_aggressive_option)
         settings_scene.add_widget(enable_nmap_aggressive_scan)
         settings_scene.add_widget(enable_fuzzing)
         settings_scene.add_widget(custom_wordlist)
@@ -95,7 +99,6 @@ class TUI:
             
         # Web analysis output
         y_offset += 1
-        #results_scene.add_widget(Label(x=0.49, y=y_offset, text="Web Analysis Output:", color="32"))
         y_offset += 1
         
         web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=1.0, height=0.5)
