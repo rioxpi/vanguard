@@ -29,7 +29,7 @@ class TUI:
         menu_scene = Scene()
         menu_scene.add_widget(Label(x=0.39, y=0.49, text="Enter target IP:"))
         input_widget = Input(x=0.49, y=0.49, width=20, placeholder="192.168.1.1")
-        input_widget.bind("submit", lambda value: self.start_scan(value))
+        input_widget.bind("submit", lambda value: self.construct_scan_type_scene(value))
         menu_scene.add_widget(input_widget)
         button = Button(x=0.5, y=0.6, text="SETTINGS")
         button.bind("press", lambda: self.scene_manager.switch_scene("settings_scene"))
@@ -82,6 +82,27 @@ class TUI:
         scan_scene.add_widget(container)
         self.scene_manager.add_scene("scan_scene", scan_scene)
 
+    def construct_scan_type_scene(self, target: str) -> None:
+        def _set_fast_scan():
+            ACTIVE_MODULES['nmap_aggressive'] = False
+            ACTIVE_MODULES['subdomain'] = False
+            ACTIVE_MODULES['web_analyzer'] = False
+            self.start_scan(target)
+        
+        scene = Scene()
+        cnt = Container(x=0.45, y=0.45, width=50 ,height=1, has_border=False)
+        
+        fast_scan = cnt.add_child(Button(0,0, "FAST SCAN"))
+        full_scan = cnt.add_child(Button(15,0, "FULL SCAN"))
+        
+        fast_scan.bind("press", lambda: _set_fast_scan())
+        full_scan.bind("press", lambda: self.start_scan(target))
+        
+        scene.add_widget(cnt)
+        self.scene_manager.add_scene(name="type-choice",scene=scene)
+        self.scene_manager.switch_scene("type-choice")
+        
+    
     def construct_results_scene(
         self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []
     ) -> None:
@@ -104,25 +125,31 @@ class TUI:
             results_scene.add_widget(Label(x=0.49, y=y_offset, text=line))
             y_offset += 1
             
-        # Web analysis output
+        # Web analyzer output
         y_offset += 1
         y_offset += 1
         
         web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=500, height=0.5)
-        
         items = []
-
-        for url, analysis in web_analysis_output.items():
-            items.append(f"url: {url}:")
+        
+        
+        if web_analysis_list and ACTIVE_MODULES['web_analyzer']:
+            items.append("=== WEB ANALYZER ===")
             
-            for tech, value in analysis['technologies'].items():
-                items.append(f"  -> {tech}: {value}")
+            for url, analysis in web_analysis_output.items():
+                items.append(f"url: {url}:")
                 
-            for header in analysis['missing_headers']:
-                items.append(f"  [!] Missing Header: {header}")
+                for tech, value in analysis['technologies'].items():
+                    items.append(f"  -> {tech}: {value}")
+                    
+                for header in analysis['missing_headers']:
+                    items.append(f"  [!] Missing Header: {header}")
+        else:
+            items.append("=== WEB ANALYZER ===")
+            items.append("THIS MODULE IS DISABLED IS DISABLED")
         
         # nmap aggressive
-        if nmap_aggressive_output:
+        if nmap_aggressive_output and ACTIVE_MODULES['nmap_aggressive'] == True:
             items.append("")
             items.append("=== DETAILED REPORT ===")
             
@@ -154,12 +181,12 @@ class TUI:
             items.append("=== DETAILED REPORT ===")
             items.append("THIS MODULE IS DISABLED")
         
-        if subdomain_results:
+        if ACTIVE_MODULES['subdomain']:
             items.append("")
             items.append("=== SUBDOMAIN RESULTS ===")
             for subdomain, ip in subdomain_results.items():
                 items.append(f"{subdomain} -> {ip}")
-
+        
         if ftp_spider:
             items.append("")
             items.append("=== FTP FILES ===")

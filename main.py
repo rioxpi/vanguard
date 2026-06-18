@@ -41,32 +41,58 @@ class Vanguard:
             subdomain_results = {}
             
             with ThreadPoolExecutor(max_workers=3) as executor:
+                # RUNNING EXECUTORS
+                
+                # NMAP AGGRESSIVE
                 if ACTIVE_MODULES["nmap_aggressive"]:
                     future_aggressive_scan = executor.submit(self.run_port_scanner_aggressive, open_ports)
+                
+                # FFUF
                 if ACTIVE_MODULES["ffuf"]:
                     future_fuzzing = executor.submit(self.run_directory_fuzzer, web_targets)
-                    future_web_analysis = executor.submit(self.run_web_analysis, list(web_targets.values()))
-                future_subdomain_finding = executor.submit(self.subdomain_finder.find_subdomains, target)
-                if '21' in open_ports:                    
+                    
+                    # WEB ANALYZER
+                    if ACTIVE_MODULES['web_analyzer']:
+                        future_web_analysis = executor.submit(self.run_web_analysis, list(web_targets.values()))
+                
+                # SUBDOMAIN
+                if ACTIVE_MODULES['subdomain']:
+                    future_subdomain_finding = executor.submit(self.subdomain_finder.find_subdomains, target)
+                
+                # FTP
+                if '21' in open_ports and ACTIVE_MODULES['ftp']: 
                     future_ftp_spider = executor.submit(self.ftp_spider.scan, target)
                 
+                # READING DATA
+                
+                # NMAP AGGRESSIVE
                 if ACTIVE_MODULES["nmap_aggressive"]:
                     aggressive_port_scan = future_aggressive_scan.result()
                 else:
                     aggressive_port_scan = {}
+                
+                # FFUF
                 if ACTIVE_MODULES["ffuf"]:
                     fuzzing_results = future_fuzzing.result()
-                    web_analysis_results = future_web_analysis.result()
+                    if ACTIVE_MODULES['web_analyzer']:
+                        web_analysis_results = future_web_analysis.result()
+                    else:
+                        web_analysis_results = {"warning" : "THIS MODULE IS DISABLED"}
                 else:
                     fuzzing_results = ["THIS MODULE IS DISABLED"]
                     web_analysis_results = {}
                 
-                if '21' in open_ports:
+                # FTP
+                if '21' in open_ports and ACTIVE_MODULES['FTP']:
                     ftp_spider = future_ftp_spider.result()
                 else:                    
-                    ftp_spider = []
+                    ftp_spider = ['Port 21 is not open or this module is disabled']
                 
-                subdomain_results = future_subdomain_finding.result()
+                # SUBDOMAIN
+                if ACTIVE_MODULES['subdomain']:
+                    subdomain_results = future_subdomain_finding.result()
+                else:
+                    subdomain_results = {"THIS MODULE IS DISABLED"}
         else:
             open_ports = {"WARNING" : "Host has no open ports"}
             fuzzing_results = ["Nothing to show!"]

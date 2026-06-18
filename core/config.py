@@ -49,7 +49,8 @@ ACTIVE_MODULES = {
     "nmap_aggressive" : True,
     "ffuf" : True,
     "subdomain" : True,
-    "web_analyzer" : True
+    "web_analyzer" : True,
+    "ftp_spider" : True,
 }
 
 NMAP_AGGRESSIVE_OPTION = {'value' : '-T4'}
