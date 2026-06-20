@@ -105,7 +105,7 @@ class TUI:
         self.scene_manager.switch_scene("type-choice")
         
     
-    def construct_results_scene(
+    '''def construct_results_scene(
         self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []
     ) -> None:
             
@@ -123,9 +123,15 @@ class TUI:
         y_offset += 1 
         results_scene.add_widget(Label(x=0.49, y=y_offset, text="Fuzzing Output:", color="32"))
         y_offset += 1
+        
+        fuzzing_output_scroll_list = ScrollList(0.7, 5, 50, 1.0)
+        
         for line in fuzzing_output:
-            results_scene.add_widget(Label(x=0.49, y=y_offset, text=line))
+            #results_scene.add_widget(Label(x=0.49, y=y_offset, text=line))
+            fuzzing_output_scroll_list.items.append(line)
             y_offset += 1
+        
+        results_scene.add_widget(fuzzing_output_scroll_list)
             
         # Web analyzer output
         y_offset += 1
@@ -206,6 +212,147 @@ class TUI:
         
         save_to_md_button = Button(0.5, 0.9 ,"SAVE TO MARKDOWN")
         save_to_md_button.bind("press", lambda: self.main_app.data_saver.save_to_markdown(self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type))
+        results_scene.add_widget(save_to_md_button)
+        
+        self.scene_manager.add_scene("results_scene", results_scene)
+        self.scene_manager.switch_scene("results_scene")'''
+    
+    def construct_results_scene(
+    self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []
+) -> None:
+        
+        results_scene = Scene()
+        
+        results_scene.add_widget(Label(x=0.03, y=0.03, text="[ SCAN RESULTS SUITE ]", color="32"))
+        
+        # left column
+        fuzzing_output_scroll_list = ScrollList(0.03, 0.10, 0.45, 0.75)
+        left_column_items = []
+        
+        # open ports
+        left_column_items.append("┌────────────────────────────────────────┐")
+        left_column_items.append("│                OPEN PORTS              │")
+        left_column_items.append("└────────────────────────────────────────┘")
+        if open_ports:
+            for port, service in open_ports.items():
+                left_column_items.append(f"  • Port {port:<5} ➔  {service}")
+        else:
+            left_column_items.append("  [!] does not detect open ports")
+            
+        left_column_items.append("")
+        
+        # Fuzzing
+        left_column_items.append("┌────────────────────────────────────────┐")
+        left_column_items.append("│              FUZZING OUTPUT            │")
+        left_column_items.append("└────────────────────────────────────────┘")
+        if fuzzing_output:
+            for line in fuzzing_output:
+                left_column_items.append(f"  {line}")
+        else:
+            left_column_items.append("  [!] No results")
+            
+        fuzzing_output_scroll_list.items = left_column_items
+        results_scene.add_widget(fuzzing_output_scroll_list)
+            
+        web_analysis_list = ScrollList(0.51, 0.10, 0.46, 0.75)
+        right_column_items = []
+        
+        # Web Analyzer
+        right_column_items.append("┌────────────────────────────────────────┐")
+        right_column_items.append("│               WEB ANALYZER             │")
+        right_column_items.append("└────────────────────────────────────────┘")
+        
+        if ACTIVE_MODULES.get('web_analyzer'):
+            if web_analysis_output:
+                for url, analysis in web_analysis_output.items():
+                    right_column_items.append(f" Target: {url}")
+                    
+                    if analysis.get('technologies'):
+                        right_column_items.append("  Detected technologies:")
+                        for tech, value in analysis['technologies'].items():
+                            right_column_items.append(f"    ├─ {tech}: {value}")
+                            
+                    if analysis.get('missing_headers'):
+                        right_column_items.append("  missing security headers:")
+                        for header in analysis['missing_headers']:
+                            right_column_items.append(f"    └─ [!] {header}")
+            else:
+                right_column_items.append("  No data.")
+        else:
+            right_column_items.append("  This module is disabled")
+        
+        # Nmap Aggressive
+        nmap_parsed = []
+        right_column_items.append("")
+        right_column_items.append("┌────────────────────────────────────────┐")
+        right_column_items.append("│             DETAILED REPORT            │")
+        right_column_items.append("└────────────────────────────────────────┘")
+        
+        if nmap_aggressive_output and ACTIVE_MODULES.get('nmap_aggressive') == True:
+            for ip, host_data in nmap_aggressive_output.items():
+                mac_info = f" ({host_data['mac']})" if host_data.get('mac') else ""
+                hostname_info = f" [{', '.join(host_data['hostnames'])}]" if host_data.get('hostnames') else ""
+                nmap_parsed.append(f" Host: {ip}{mac_info}{hostname_info}")
+                
+                # OS
+                if host_data.get("os_matches"):
+                    nmap_parsed.append("   OS Detection:")
+                    for os in host_data["os_matches"]:
+                        nmap_parsed.append(f"    └─ {os['name']} (Accuracy: {os['accuracy']}%)")
+                
+                # Ports & NSE
+                if host_data.get("ports"):
+                    nmap_parsed.append("   Detailed ports & scripts:")
+                    for port in host_data["ports"]:
+                        nmap_parsed.append(f"    ├─ {port['portid']}/{port['protocol']} ➔ {port['service']} | {port['version']}")
+                        
+                        if port.get("scripts"):
+                            for script in port["scripts"]:
+                                nmap_parsed.append(f"    │  └─ [{script['script_name']}]")
+                                for output_line in script['script_output'].split('\n'):
+                                    if output_line.strip():
+                                        nmap_parsed.append(f"    │     {output_line.strip()}")
+            
+            right_column_items.extend(nmap_parsed)
+                                
+        elif ACTIVE_MODULES.get("nmap_aggressive") == False:
+            nmap_parsed = 'THIS MODULE IS DISABLED'
+            right_column_items.append("  This module is disabled")
+        else:
+            right_column_items.append("  No detailed report")
+        
+        # Subdomains
+        right_column_items.append("")
+        right_column_items.append("┌────────────────────────────────────────┐")
+        right_column_items.append("│             SUBDOMAIN RESULTS          │")
+        right_column_items.append("└────────────────────────────────────────┘")
+        if ACTIVE_MODULES.get('subdomain'):
+            if subdomain_results:
+                for subdomain, ip in subdomain_results.items():
+                    right_column_items.append(f"   {subdomain} ➔ {ip}")
+            else:
+                right_column_items.append("  No subdomains found")
+        else:
+            right_column_items.append("   This module is disabled")
+        
+        # FTP
+        right_column_items.append("")
+        right_column_items.append("┌────────────────────────────────────────┐")
+        right_column_items.append("│                FTP FILES               │")
+        right_column_items.append("└────────────────────────────────────────┘")
+        if ftp_spider:
+            for i in ftp_spider:
+                right_column_items.append(f"  └─ {i}")
+        else:
+            right_column_items.append("  No files found on FTP")
+        
+        web_analysis_list.items = right_column_items
+        results_scene.add_widget(web_analysis_list)
+        
+        save_to_md_button = Button(0.40, 0.89, "SAVE REPORT (MARKDOWN)")
+        save_to_md_button.bind("press", lambda: self.main_app.data_saver.save_to_markdown(
+            self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type
+        ))
         results_scene.add_widget(save_to_md_button)
         
         self.scene_manager.add_scene("results_scene", results_scene)
