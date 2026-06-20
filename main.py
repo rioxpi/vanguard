@@ -4,6 +4,7 @@ from modules.directory_fuzzer import DirectoryFuzzer
 from modules.web_analyzer import WebAnalyzer
 from modules.subdomain_finder import SubdomainFinder
 from modules.ftp_spider import FtpSpider
+from modules.save_data import DataSaver
 from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES, ACTIVE_MODULES, NMAP_AGGRESSIVE_OPTION
 from concurrent.futures import ThreadPoolExecutor
 from core.TUI import TUI
@@ -18,6 +19,7 @@ class Vanguard:
         self.web_analyzer = WebAnalyzer()
         self.subdomain_finder = SubdomainFinder()
         self.ftp_spider = FtpSpider()
+        self.data_saver = DataSaver()
         self.tui_app = TUI(self)
         self.target = ""
 

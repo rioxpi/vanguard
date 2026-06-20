@@ -19,6 +19,7 @@ class TUI:
         self.app = Engine()
         self.screen = None
         self.scene_manager = SceneManager(self.app)
+        self.scan_type = 'full'
         self.construct_settings_scene()
         self.construct_main_menu()
         self.construct_scan_scene()
@@ -87,6 +88,7 @@ class TUI:
             ACTIVE_MODULES['nmap_aggressive'] = False
             ACTIVE_MODULES['subdomain'] = False
             ACTIVE_MODULES['web_analyzer'] = False
+            self.scan_type = 'fast'
             self.start_scan(target)
         
         scene = Scene()
@@ -129,7 +131,7 @@ class TUI:
         y_offset += 1
         y_offset += 1
         
-        web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=500, height=0.5)
+        web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=1.0, height=0.4)
         items = []
         
         
@@ -148,6 +150,8 @@ class TUI:
             items.append("=== WEB ANALYZER ===")
             items.append("THIS MODULE IS DISABLED IS DISABLED")
         
+        nmap_parsed = []
+        
         # nmap aggressive
         if nmap_aggressive_output and ACTIVE_MODULES['nmap_aggressive'] == True:
             items.append("")
@@ -156,27 +160,31 @@ class TUI:
             for ip, host_data in nmap_aggressive_output.items():
                 mac_info = f" ({host_data['mac']})" if host_data['mac'] else ""
                 hostname_info = f" [{', '.join(host_data['hostnames'])}]" if host_data['hostnames'] else ""
-                items.append(f"Host: {ip}{mac_info}{hostname_info}")
+                nmap_parsed.append(f"Host: {ip}{mac_info}{hostname_info}")
                 
                 # OS
                 if host_data.get("os_matches"):
-                    items.append("  OS Detection:")
+                    nmap_parsed.append("  OS Detection:")
                     for os in host_data["os_matches"]:
-                        items.append(f"    - {os['name']} (Accuracy: {os['accuracy']}%)")
+                        nmap_parsed.append(f"    - {os['name']} (Accuracy: {os['accuracy']}%)")
                 
                 # NSE
                 if host_data.get("ports"):
-                    items.append("  Detailed Ports & Scripts:")
+                    nmap_parsed.append("  Detailed Ports & Scripts:")
                     for port in host_data["ports"]:
-                        items.append(f"    - {port['portid']}/{port['protocol']} -> {port['service']} | {port['version']}")
+                        nmap_parsed.append(f"    - {port['portid']}/{port['protocol']} -> {port['service']} | {port['version']}")
                         
                         if port.get("scripts"):
                             for script in port["scripts"]:
-                                items.append(f"      [{script['script_name']}]")
+                                nmap_parsed.append(f"      [{script['script_name']}]")
                                 for output_line in script['script_output'].split('\n'):
                                     if output_line.strip():
-                                        items.append(f"        {output_line.strip()}")
+                                        nmap_parsed.append(f"        {output_line.strip()}")
+            
+            items.extend(nmap_parsed)
+                                
         elif ACTIVE_MODULES["nmap_aggressive"] == False:
+            nmap_parsed = 'THIS MODULE IS DISABLED'
             items.append("")
             items.append("=== DETAILED REPORT ===")
             items.append("THIS MODULE IS DISABLED")
@@ -196,13 +204,16 @@ class TUI:
         web_analysis_list.items = items
         results_scene.add_widget(web_analysis_list)
         
+        save_to_md_button = Button(0.5, 0.9 ,"SAVE TO MARKDOWN")
+        save_to_md_button.bind("press", lambda: self.main_app.data_saver.save_to_markdown(self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type))
+        results_scene.add_widget(save_to_md_button)
+        
         self.scene_manager.add_scene("results_scene", results_scene)
         self.scene_manager.switch_scene("results_scene")
 
 
     def change_scene(self, scene_name: str) -> None:
         self.app.dispatch_to_main_thread(self.scene_manager.switch_scene, scene_name)
-        #self.scene_manager.switch_scene(scene_name)
 
     def run(self) -> None:
         self.app.run()
