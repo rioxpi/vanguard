@@ -2,7 +2,7 @@ from axto import Engine
 from axto.scene import Scene
 from axto.scene_manager import SceneManager
 from axto.widgets import Label, Input, ScrollList, Button, CheckBox, Select, Container
-from core.config import DIRECTORIES, ACTIVE_MODULES, NMAP_AGGRESSIVE_OPTION
+from core.config import DIRECTORIES, ACTIVE_MODULES, NMAP_CONFIG
 from pathlib import Path
 
 class TUI:
@@ -50,12 +50,14 @@ class TUI:
         nmap_aggressive_option = container.add_child(Select(x=0, y=2, width=50, options=nmap_options, default_index=3))        
         enable_fuzzing = container.add_child(CheckBox(x=0, y=4, label="Enable Fuzzing", checked=ACTIVE_MODULES["ffuf"]))
         enable_nmap_aggressive_scan = container.add_child(CheckBox(x=0, y=6, label="Enable Nmap aggressive scanning", checked=ACTIVE_MODULES["nmap_aggressive"]))
-        custom_wordlist = container.add_child(Input(x=0, y=9, width=25, placeholder="Custom wordlist"))
+        nmap_port_flag = container.add_child(Input(x=0, y=8, width=30, placeholder='Nmap port flag (default: -F)'))
+        custom_wordlist = container.add_child(Input(x=0, y=10, width=25, placeholder="Custom wordlist"))
         
         custom_wordlist.bind("submit", lambda key: DIRECTORIES.__setitem__("wordlist", key) if Path(key).exists() else custom_wordlist.trigger_error_flash())
         enable_fuzzing.bind("change", lambda state: ACTIVE_MODULES.__setitem__("ffuf", state))
         enable_nmap_aggressive_scan.bind("change", lambda state: ACTIVE_MODULES.__setitem__("nmap_aggressive", state))
-        nmap_aggressive_option.bind("change", lambda val, idx: NMAP_AGGRESSIVE_OPTION.__setitem__("value", f"-{val[0]}{val[1]}"))
+        nmap_aggressive_option.bind("change", lambda val, idx: NMAP_CONFIG.__setitem__("aggressive_level", f"-{val[0]}{val[1]}"))
+        nmap_port_flag.bind("submit", lambda key: NMAP_CONFIG.__setitem__("port_flag", f"{key}"))
         
         settings_scene.add_widget(container)
         
@@ -103,119 +105,6 @@ class TUI:
         scene.add_widget(cnt)
         self.scene_manager.add_scene(name="type-choice",scene=scene)
         self.scene_manager.switch_scene("type-choice")
-        
-    
-    '''def construct_results_scene(
-        self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []
-    ) -> None:
-            
-        results_scene = Scene()
-        y_offset = 5
-        
-        # Open ports
-        results_scene.add_widget(Label(x=0.49, y=y_offset, text="Open Ports:", color="32"))
-        y_offset += 1
-        for port, service in open_ports.items():
-            results_scene.add_widget(Label(x=0.49, y=y_offset, text=f"{port}: {service}"))
-            y_offset += 1
-        
-        # Fuzzing output
-        y_offset += 1 
-        results_scene.add_widget(Label(x=0.49, y=y_offset, text="Fuzzing Output:", color="32"))
-        y_offset += 1
-        
-        fuzzing_output_scroll_list = ScrollList(0.7, 5, 50, 1.0)
-        
-        for line in fuzzing_output:
-            #results_scene.add_widget(Label(x=0.49, y=y_offset, text=line))
-            fuzzing_output_scroll_list.items.append(line)
-            y_offset += 1
-        
-        results_scene.add_widget(fuzzing_output_scroll_list)
-            
-        # Web analyzer output
-        y_offset += 1
-        y_offset += 1
-        
-        web_analysis_list = ScrollList(x=0.45, y=y_offset+1, width=1.0, height=0.4)
-        items = []
-        
-        
-        if web_analysis_list and ACTIVE_MODULES['web_analyzer']:
-            items.append("=== WEB ANALYZER ===")
-            
-            for url, analysis in web_analysis_output.items():
-                items.append(f"url: {url}:")
-                
-                for tech, value in analysis['technologies'].items():
-                    items.append(f"  -> {tech}: {value}")
-                    
-                for header in analysis['missing_headers']:
-                    items.append(f"  [!] Missing Header: {header}")
-        else:
-            items.append("=== WEB ANALYZER ===")
-            items.append("THIS MODULE IS DISABLED IS DISABLED")
-        
-        nmap_parsed = []
-        
-        # nmap aggressive
-        if nmap_aggressive_output and ACTIVE_MODULES['nmap_aggressive'] == True:
-            items.append("")
-            items.append("=== DETAILED REPORT ===")
-            
-            for ip, host_data in nmap_aggressive_output.items():
-                mac_info = f" ({host_data['mac']})" if host_data['mac'] else ""
-                hostname_info = f" [{', '.join(host_data['hostnames'])}]" if host_data['hostnames'] else ""
-                nmap_parsed.append(f"Host: {ip}{mac_info}{hostname_info}")
-                
-                # OS
-                if host_data.get("os_matches"):
-                    nmap_parsed.append("  OS Detection:")
-                    for os in host_data["os_matches"]:
-                        nmap_parsed.append(f"    - {os['name']} (Accuracy: {os['accuracy']}%)")
-                
-                # NSE
-                if host_data.get("ports"):
-                    nmap_parsed.append("  Detailed Ports & Scripts:")
-                    for port in host_data["ports"]:
-                        nmap_parsed.append(f"    - {port['portid']}/{port['protocol']} -> {port['service']} | {port['version']}")
-                        
-                        if port.get("scripts"):
-                            for script in port["scripts"]:
-                                nmap_parsed.append(f"      [{script['script_name']}]")
-                                for output_line in script['script_output'].split('\n'):
-                                    if output_line.strip():
-                                        nmap_parsed.append(f"        {output_line.strip()}")
-            
-            items.extend(nmap_parsed)
-                                
-        elif ACTIVE_MODULES["nmap_aggressive"] == False:
-            nmap_parsed = 'THIS MODULE IS DISABLED'
-            items.append("")
-            items.append("=== DETAILED REPORT ===")
-            items.append("THIS MODULE IS DISABLED")
-        
-        if ACTIVE_MODULES['subdomain']:
-            items.append("")
-            items.append("=== SUBDOMAIN RESULTS ===")
-            for subdomain, ip in subdomain_results.items():
-                items.append(f"{subdomain} -> {ip}")
-        
-        if ftp_spider:
-            items.append("")
-            items.append("=== FTP FILES ===")
-            for i in ftp_spider:
-                items.append(i)
-        
-        web_analysis_list.items = items
-        results_scene.add_widget(web_analysis_list)
-        
-        save_to_md_button = Button(0.5, 0.9 ,"SAVE TO MARKDOWN")
-        save_to_md_button.bind("press", lambda: self.main_app.data_saver.save_to_markdown(self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type))
-        results_scene.add_widget(save_to_md_button)
-        
-        self.scene_manager.add_scene("results_scene", results_scene)
-        self.scene_manager.switch_scene("results_scene")'''
     
     def construct_results_scene(
     self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []

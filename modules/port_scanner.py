@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from core.config import DIRECTORIES, NMAP_AGGRESSIVE_OPTION
+from core.config import DIRECTORIES, NMAP_CONFIG
 
 class PortScanner:
     """A class to handle port scanning using nmap and parsing the results."""
@@ -31,7 +31,7 @@ class PortScanner:
 
         ports_str = ",".join(ports)
         
-        cmd = [DIRECTORIES['nmap'], "-p", ports_str, "-A", NMAP_AGGRESSIVE_OPTION['value'], "-Pn", "-oX", "-", target]
+        cmd = [DIRECTORIES['nmap'], "-p", ports_str, "-A", NMAP_CONFIG['aggressive_level'], "-Pn", "-oX", "-", target]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout
     
@@ -46,7 +46,7 @@ class PortScanner:
         """
         try:
             result = subprocess.run(
-                [DIRECTORIES["nmap"], "-F", "-oX", "-", target],
+                [DIRECTORIES["nmap"], NMAP_CONFIG["port_flag"], "-oX", "-", target],
                 capture_output=True,
                 text=True,
                 check=True,

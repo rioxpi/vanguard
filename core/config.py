@@ -53,4 +53,7 @@ ACTIVE_MODULES = {
     "ftp_spider" : True,
 }
 
-NMAP_AGGRESSIVE_OPTION = {'value' : '-T4'}
+NMAP_CONFIG = {
+    "aggressive_level" : '-T4',
+    "port_flag" : '-F'
+}
