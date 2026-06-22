@@ -1,154 +1,256 @@
-<h1 align="center">
-  <img src="static/subfinder-logo.png" alt="subfinder" width="200px">
-  <br>
-</h1>
+# VANGUARD
 
-<h4 align="center">Fast passive subdomain enumeration tool.</h4>
+![Python](https://img.shields.io/badge/python-3.x-blue)
+![Status](https://img.shields.io/badge/status-active-success)
+![Platform](https://img.shields.io/badge/platform-linux-lightgrey)
+![License](https://img.shields.io/badge/license-none-red)
 
+Vanguard is a Python-based reconnaissance utility that automates:
 
-<p align="center">
-<a href="https://goreportcard.com/report/github.com/projectdiscovery/subfinder/v2"><img src="https://goreportcard.com/badge/github.com/projectdiscovery/subfinder"></a>
-<a href="https://github.com/projectdiscovery/subfinder/issues"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat"></a>
-<a href="https://github.com/projectdiscovery/subfinder/releases"><img src="https://img.shields.io/github/release/projectdiscovery/subfinder"></a>
-<a href="https://twitter.com/pdiscoveryio"><img src="https://img.shields.io/twitter/follow/pdiscoveryio.svg?logo=twitter"></a>
-<a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
-</p>
-
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Install</a> •
-  <a href="#running-subfinder">Usage</a> •
-  <a href="#post-installation-instructions">API Setup</a> •
-  <a href="#subfinder-go-library">Library</a> •
-  <a href="https://discord.gg/projectdiscovery">Join Discord</a>
-</p>
+- port scanning using nmap
+- XML parsing
+- web service detection
+- directory fuzzing with ffuf
+- scanning headers
 
 ---
 
+## Features
 
-`subfinder` is a subdomain discovery tool that returns valid subdomains for websites, using passive online sources. It has a simple, modular architecture and is optimized for speed. `subfinder` is built for
-doing one thing only - passive subdomain enumeration, and it does that very well.
+- Automated nmap setup
+- XML parsing of scan results
+- Open-port listing with detected services
+- Web-service detection based on ports and service names
+- ffuf-based fuzzing against discovered HTTP/HTTPS targets
+- Local `programs/` directory for downloaded dependencies
+- Aggressive nmap port scanning
+- Text User Interface
+- Analyzing web headers
 
-We have made it to comply with all the used passive source licenses and usage restrictions. The passive model guarantees speed and stealthiness that can be leveraged by both penetration testers and bug bounty
-hunters alike.
+---
 
-# Features
+## Repository Structure
 
-<h1 align="left">
-  <img src="static/subfinder-run.png" alt="subfinder" width="700px"></a>
-  <br>
-</h1>
-
-- Fast and powerful resolution and wildcard elimination modules
-- **Curated** passive sources to maximize results
-- Multiple output formats supported (JSON, file, stdout)
-- Optimized for speed and **lightweight** on resources
-- **STDIN/OUT** support enables easy integration into workflows
-
-# Usage
-
-```sh
-subfinder -h
+```text
+.
+├── .gitignore
+├── install.py
+├── launcher.py
+├── core/
+│   ├── config.py 
+│   └── TUI.py
+├── modules/
+│   ├── port_scanner.py
+│   ├── directory_fuzzer.py
+│   ├── subdomain_finder.py
+│   └── web_analyzer.py
+├── main.py
+├── README.md
+└── programs/   # created locally after installation
 ```
 
-This will display help for the tool. Here are all the switches it supports.
+### Files
 
-```yaml
-Usage:
-  ./subfinder [flags]
+#### `install.py`
 
-Flags:
-INPUT:
-  -d, -domain string[]  domains to find subdomains for
-  -dL, -list string     file containing list of domains for subdomain discovery
+Downloads:
+- portable nmap,
+- ffuf,
+- SecLists wordlist.
 
-SOURCE:
-  -s, -sources string[]           specific sources to use for discovery (-s crtsh,github). Use -ls to display all available sources.
-  -recursive                      use only sources that can handle subdomains recursively (e.g. subdomain.domain.tld vs domain.tld)
-  -all                            use all sources for enumeration (slow)
-  -es, -exclude-sources string[]  sources to exclude from enumeration (-es alienvault,zoomeyeapi)
+#### `main.py`
 
-FILTER:
-  -m, -match string[]   subdomain or list of subdomain to match (file or comma separated)
-  -f, -filter string[]   subdomain or list of subdomain to filter (file or comma separated)
+Responsible for:
+- coordinating all modules
+- running the full reconnaissance workflow
 
-RATE-LIMIT:
-  -rl, -rate-limit int  maximum number of http requests to send per second
-  -rls value            maximum number of http requests to send per second for providers in key=value format (-rls "hackertarget=10/s,shodan=15/s")
-  -t int                number of concurrent goroutines for resolving (-active only) (default 10)
+#### `config.py`
 
-UPDATE:
-  -up, -update                 update subfinder to latest version
-  -duc, -disable-update-check  disable automatic subfinder update check
+Contains default variables:
+- web target ports and services
+- directories for downloaded programs
 
-OUTPUT:
-  -o, -output string       file to write output to
-  -oJ, -json               write output in JSONL(ines) format
-  -oD, -output-dir string  directory to write output (-dL only)
-  -cs, -collect-sources    include all sources in the output (-json only)
-  -oI, -ip                 include host IP in output (-active only)
+### TUI.py
 
-CONFIGURATION:
-  -config string                flag config file (default "$CONFIG/subfinder/config.yaml")
-  -pc, -provider-config string  provider config file (default "$CONFIG/subfinder/provider-config.yaml")
-  -r string[]                   comma separated list of resolvers to use
-  -rL, -rlist string            file containing list of resolvers to use
-  -nW, -active                  display active subdomains only
-  -proxy string                 http proxy to use with subfinder
-  -ei, -exclude-ip              exclude IPs from the list of domains
+Responsible for:
+- Text User Interface using the axto library
 
-DEBUG:
-  -silent             show only subdomains in output
-  -version            show version of subfinder
-  -v                  show verbose output
-  -nc, -no-color      disable color in output
-  -ls, -list-sources  list all available sources
+#### `directory_fuzzer.py`
 
-OPTIMIZATION:
-  -timeout int   seconds to wait before timing out (default 30)
-  -max-time int  minutes to wait for enumeration results (default 10)
+Responsible for:
+- launching ffuf
+- parsing ffuf output
+
+#### `port_scanner.py`
+
+
+Responsible for:
+- launching nmap
+- parsing nmap output
+
+#### `subdomain_finder.py`
+
+Responsible for:
+- searching for domains using `subfinder`
+
+
+
+#### `web_analyzer.py`
+
+
+
+
+
+Responsible for:
+- Analyzing web headers
+
+#### `launcher.py`
+
+Responsible for:
+- checking SHA 256 checksum
+- running main program
+
+---
+
+## Requirements
+
+- Python 3
+- Internet connection during setup
+- Unix-like environment
+
+---
+
+## Installation
+
+```bash
+python install.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 
-## Environment Variables
+This downloads all required tools into the local `programs/` directory.
 
-Subfinder supports environment variables to specify custom paths for configuration files:
+---
 
-- `SUBFINDER_CONFIG` - Path to config.yaml file (overrides default `$CONFIG/subfinder/config.yaml`)
-- `SUBFINDER_PROVIDER_CONFIG` - Path to provider-config.yaml file (overrides default `$CONFIG/subfinder/provider-config.yaml`)
+## Usage
 
-# Installation
 
-`subfinder` requires **go1.24** to install successfully. Run the following command to install the latest version:
-
-```sh
-go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+```bash
+python main.py <target>
 ```
 
-Learn about more ways to install subfinder here: https://docs.projectdiscovery.io/tools/subfinder/install.
+### Examples
 
-## Post Installation Instructions
+```bash
+python main.py 192.168.1.10
+python main.py example.com
+```
 
-`subfinder` can be used right after the installation, however many sources required API keys to work. Learn more here: https://docs.projectdiscovery.io/tools/subfinder/install#post-install-configuration.
+---
 
-## Running Subfinder
+## Workflow
 
-Learn about how to run Subfinder here: https://docs.projectdiscovery.io/tools/subfinder/running.
+1. Run nmap scan
+2. Parse XML output
+3. Detect web targets
+4. Generate URLs
+5. Run ffuf fuzzing
 
-## Subfinder Go library
+---
 
-Subfinder can also be used as library and a minimal examples of using subfinder SDK is available [here](examples/main.go)
+## TODO
 
-</td>
-</tr>
-</table>
+- [X] Rewrite UI into a TUI using [axto](https://github.com/rioxpi/axto)
+- [X] Add ffuf output parser
+- [X] Add automated launcher
+- [X] Improve error handling
+- [X] Add custom wordlist support
+- [X] Add Aggressive port scanning
+- [ ] Add saving to a markdown file
+- [ ] Add full & fast scan
+- [ ] Add ssh module
+- [ ] Add ftp module
+- [ ] Add smtp module
+- [ ] Add the ability to disable nmap aggressive scan
 
-### Resources
+---
 
-- [Recon with Me !!!](https://dhiyaneshgeek.github.io/bug/bounty/2020/02/06/recon-with-me/)
+## CHANGELOG
 
-# License
+### VERSION 0.0.1
 
-`subfinder` is made with 🖤 by the [projectdiscovery](https://projectdiscovery.io) team. Community contributions have made the project what it is. See
-the **[THANKS.md](https://github.com/projectdiscovery/subfinder/blob/main/THANKS.md)** file for more details.
 
-Read the usage disclaimer at [DISCLAIMER.md](https://github.com/projectdiscovery/subfinder/blob/main/DISCLAIMER.md) and [contact us](mailto:contact@projectdiscovery.io) for any API removal.
+
+1. Add port scanning using nmap
+2. Add directory fuzzing using ffuf
+3. Parse nmap & ffuf output
+
+### VERSION 0.1.0
+
+1. Add UI using Axto library
+2. Add web headers analyzer
+3. Add aggressive nmap port scanning
+
+### VERSION 0.1.1
+
+1. Add automatic launcher
+2. Add the ability to set custom fuzzing wordlist
+3. Add threads
+4. Add a checkbox to disable fuzzing
+5. Add subdomain finder
+
+---
+
+## Disclaimer
