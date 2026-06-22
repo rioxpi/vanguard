@@ -5,6 +5,7 @@ from modules.web_analyzer import WebAnalyzer
 from modules.subdomain_finder import SubdomainFinder
 from modules.ftp_spider import FtpSpider
 from modules.save_data import DataSaver
+from modules.vuln_searcher import VulnSearcher
 from core.config import PLAIN_HTTP_PORTS, PLAIN_HTTP_SERVICES, SSL_PORTS, SSL_SERVICES, ACTIVE_MODULES, NMAP_CONFIG
 from concurrent.futures import ThreadPoolExecutor
 from core.TUI import TUI
@@ -20,6 +21,7 @@ class Vanguard:
         self.subdomain_finder = SubdomainFinder()
         self.ftp_spider = FtpSpider()
         self.data_saver = DataSaver()
+        self.vuln_searcher = VulnSearcher()
         self.tui_app = TUI(self)
         self.target = ""
 
@@ -64,6 +66,7 @@ class Vanguard:
                 # FTP
                 if '21' in open_ports and ACTIVE_MODULES['ftp']: 
                     future_ftp_spider = executor.submit(self.ftp_spider.scan, target)
+                
                 
                 # READING DATA
                 
