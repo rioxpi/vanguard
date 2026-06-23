@@ -5,7 +5,7 @@ class DataSaver():
     def __init__(self) -> None:
         pass
     
-    def save_to_markdown(self, target : str,open_ports : list, fuzzing : list, subdomains : list = [], web_analyzer : dict[str, dict] = {},ftp_data : list = [], formatted_nmap_aggressive : list = [],scan_type : str = "Unknown") -> None:
+    def save_to_markdown(self, target : str,open_ports : list, fuzzing : list, subdomains : list = [], web_analyzer : dict[str, dict] = {},ftp_data : list = [], formatted_nmap_aggressive : list = [],scan_type : str = "Unknown", vulnerabilities : list = []) -> None:
         os.makedirs("reports", exist_ok=True)
         
         time_file = time.strftime("%Y-%m-%d_%H-%M")
@@ -74,6 +74,17 @@ class DataSaver():
                 
                 file.write("\n")
             
+            # VULNERABILITIES
+            if vulnerabilities:
+                file.write("## VULNERABILITIES\n\n")
+                for idx, data in enumerate(vulnerabilities):
+                    file.write(f" {idx+1}. {data["title"]}\n")
+                    file.write(f"   - type: {data['type']}\n")
+                    file.write(f"   - exploit id: {data['exploit_id']}\n")
+                    file.write(f"   - path: {data['path']}\n") 
+                
+                file.write("\n")
+                
             # NMAP AGGRESSIVE
             if formatted_nmap_aggressive:
                 file.write("## NMAP AGGRESSIVE\n\n")

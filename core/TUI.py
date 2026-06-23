@@ -107,7 +107,7 @@ class TUI:
         self.scene_manager.switch_scene("type-choice")
     
     def construct_results_scene(
-    self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = []
+    self, open_ports: dict[str, str], fuzzing_output: list[str], web_analysis_output: dict[str, dict], nmap_aggressive_output: dict = {}, subdomain_results: dict = {}, ftp_spider: list = [], vulnerabilities : list = []
 ) -> None:
         
         results_scene = Scene()
@@ -224,6 +224,21 @@ class TUI:
         else:
             right_column_items.append("   This module is disabled")
         
+        # VULNERABILITIES
+        right_column_items.append("")
+        right_column_items.append("┌────────────────────────────────────────┐")
+        right_column_items.append("│             VULNERABILITIES            │")
+        right_column_items.append("└────────────────────────────────────────┘")
+        
+        if vulnerabilities:
+            for d in vulnerabilities:
+                right_column_items.append(f" {d["title"]}")
+                right_column_items.append(f"  ├─ type: {d['type']}")
+                right_column_items.append(f"  ├─ exploit id: {d['exploit_id']}")
+                right_column_items.append(f"  └─ path: {d['path']}")
+        else:
+            right_column_items.append(f"No vulnerabilities found")
+            
         # FTP
         right_column_items.append("")
         right_column_items.append("┌────────────────────────────────────────┐")
@@ -240,7 +255,7 @@ class TUI:
         
         save_to_md_button = Button(0.40, 0.89, "SAVE REPORT (MARKDOWN)")
         save_to_md_button.bind("press", lambda: self.main_app.data_saver.save_to_markdown(
-            self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type
+            self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type, vulnerabilities
         ))
         results_scene.add_widget(save_to_md_button)
         

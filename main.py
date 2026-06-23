@@ -73,9 +73,20 @@ class Vanguard:
                 # NMAP AGGRESSIVE
                 if ACTIVE_MODULES["nmap_aggressive"]:
                     aggressive_port_scan = future_aggressive_scan.result()
+                    
+                    found_vulnerabilities = []
+                    services_to_scan = []
+                    for ip, host_data in aggressive_port_scan.items():
+                        for data in host_data['ports']:
+                            if data['version'] != "unknown":
+                                d = data["version"].split(" ")
+                                services_to_scan.append([d[0], d[1]])
+                        
+                    found_vulnerabilities = self.vuln_searcher.search_for_exploits(services_to_scan)
                 else:
                     aggressive_port_scan = {}
-                
+                    found_vulnerabilities = []
+
                 # FFUF
                 if ACTIVE_MODULES["ffuf"]:
                     fuzzing_results = future_fuzzing.result()
@@ -105,7 +116,8 @@ class Vanguard:
             aggressive_port_scan = {}
             subdomain_results = {}
             ftp_spider = []
-        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan, subdomain_results, ftp_spider)
+            found_vulnerabilities = []
+        self.tui_app.construct_results_scene(open_ports, fuzzing_results, web_analysis_results, aggressive_port_scan, subdomain_results, ftp_spider, found_vulnerabilities)
         self.tui_app.change_scene("results_scene")
     
     def identify_web_targets(self, open_ports: dict) -> dict:

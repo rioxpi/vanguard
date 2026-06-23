@@ -15,10 +15,8 @@ class VulnSearcher:
         return data     
 
     def _scan_software_version(self, product, version):
-        print(f"Data: {product}, {version}")
         query = f"{product} {version}".strip()
-        print(f"Searching for {query}")
-        
+                
         cmd = [DIRECTORIES['searchsploit'], query, '--json']
         
         try:
