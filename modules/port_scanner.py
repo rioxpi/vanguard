@@ -3,6 +3,7 @@ import sys
 import xml.etree.ElementTree as ET
 from core.config import DIRECTORIES, NMAP_CONFIG
 
+
 class PortScanner:
     """A class to handle port scanning using nmap and parsing the results."""
 
@@ -17,7 +18,7 @@ class PortScanner:
 
         return open_ports
 
-    def full_scan(self, target: str,ports: list[str]) -> str:
+    def full_scan(self, target: str, ports: list[str]) -> str:
         """Runs nmap aggressive scan
 
         Args:
@@ -30,11 +31,21 @@ class PortScanner:
             return ""
 
         ports_str = ",".join(ports)
-        
-        cmd = [DIRECTORIES['nmap'], "-p", ports_str, "-A", NMAP_CONFIG['aggressive_level'], "-Pn", "-oX", "-", target]
+
+        cmd = [
+            DIRECTORIES["nmap"],
+            "-p",
+            ports_str,
+            "-A",
+            NMAP_CONFIG["aggressive_level"],
+            "-Pn",
+            "-oX",
+            "-",
+            target,
+        ]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout
-    
+
     def run_nmap(self, target: str) -> str:
         """Runs nmap against the specified target and returns the XML output as a string.
 
@@ -92,21 +103,21 @@ class PortScanner:
 
         report = {}
 
-        for host in root.findall('host'):
-            status_el = host.find('status')
-            status = status_el.get('state') if status_el is not None else "unknown"
+        for host in root.findall("host"):
+            status_el = host.find("status")
+            status = status_el.get("state") if status_el is not None else "unknown"
             if status != "up":
                 continue
 
             # IP & MAC
             ip_address = None
             mac_address = None
-            for addr in host.findall('address'):
-                addr_type = addr.get('addrtype')
-                if addr_type == 'ipv4':
-                    ip_address = addr.get('addr')
-                elif addr_type == 'mac':
-                    mac_address = addr.get('addr')
+            for addr in host.findall("address"):
+                addr_type = addr.get("addrtype")
+                if addr_type == "ipv4":
+                    ip_address = addr.get("addr")
+                elif addr_type == "mac":
+                    mac_address = addr.get("addr")
 
             if not ip_address:
                 continue
@@ -115,66 +126,73 @@ class PortScanner:
                 "mac": mac_address if mac_address else "",
                 "hostnames": [],
                 "ports": [],
-                "os_matches": []
+                "os_matches": [],
             }
 
             # Hostname
-            hostnames_el = host.find('hostnames')
+            hostnames_el = host.find("hostnames")
             if hostnames_el is not None:
-                for hn in hostnames_el.findall('hostname'):
-                    report[ip_address]["hostnames"].append(hn.get('name'))
+                for hn in hostnames_el.findall("hostname"):
+                    report[ip_address]["hostnames"].append(hn.get("name"))
 
             # Ports
-            ports_el = host.find('ports')
+            ports_el = host.find("ports")
             if ports_el is not None:
-                for port in ports_el.findall('port'):
-                    state_el = port.find('state')
-                    
-                    if state_el is not None and state_el.get('state') == 'open':
+                for port in ports_el.findall("port"):
+                    state_el = port.find("state")
+
+                    if state_el is not None and state_el.get("state") == "open":
                         service_name = "unknown"
                         full_version_string = "unknown"
-                        
-                        service_el = port.find('service')
+
+                        service_el = port.find("service")
                         if service_el is not None:
-                            service_name = service_el.get('name', 'unknown')
-                            
-                            prod = service_el.get('product', '').strip()
-                            ver = service_el.get('version', '').strip()
-                            ext = service_el.get('extrainfo', '').strip()
-                            
+                            service_name = service_el.get("name", "unknown")
+
+                            prod = service_el.get("product", "").strip()
+                            ver = service_el.get("version", "").strip()
+                            ext = service_el.get("extrainfo", "").strip()
+
                             # Product version (extrainfo)
                             version_parts = []
-                            if prod: version_parts.append(prod)
-                            if ver: version_parts.append(ver)
-                            if ext: version_parts.append(f"({ext})")
-                            
+                            if prod:
+                                version_parts.append(prod)
+                            if ver:
+                                version_parts.append(ver)
+                            if ext:
+                                version_parts.append(f"({ext})")
+
                             if version_parts:
                                 full_version_string = " ".join(version_parts)
 
                         scripts_list = []
-                        for script in port.findall('script'):
-                            scripts_list.append({
-                                "script_name": script.get('id', '').strip(),
-                                "script_output": script.get('output', '').strip()
-                            })
+                        for script in port.findall("script"):
+                            scripts_list.append(
+                                {
+                                    "script_name": script.get("id", "").strip(),
+                                    "script_output": script.get("output", "").strip(),
+                                }
+                            )
 
                         port_data = {
-                            "portid": int(port.get('portid')), # type: ignore
-                            "protocol": port.get('protocol', 'tcp'),
+                            "portid": int(port.get("portid")),  # type: ignore
+                            "protocol": port.get("protocol", "tcp"),
                             "service": service_name,
                             "version": full_version_string,
-                            "scripts": scripts_list 
+                            "scripts": scripts_list,
                         }
 
                         report[ip_address]["ports"].append(port_data)
 
             # OS Matches
-            os_el = host.find('os')
+            os_el = host.find("os")
             if os_el is not None:
-                for os_match in os_el.findall('osmatch'):
-                    report[ip_address]["os_matches"].append({
-                        "name": os_match.get('name', 'unknown'),
-                        "accuracy": int(os_match.get('accuracy', 0))
-                    })
+                for os_match in os_el.findall("osmatch"):
+                    report[ip_address]["os_matches"].append(
+                        {
+                            "name": os_match.get("name", "unknown"),
+                            "accuracy": int(os_match.get("accuracy", 0)),
+                        }
+                    )
 
         return report

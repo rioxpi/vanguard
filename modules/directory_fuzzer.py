@@ -1,6 +1,5 @@
 import json
 import subprocess
-import sys
 from core.config import DIRECTORIES
 
 
@@ -39,7 +38,7 @@ class DirectoryFuzzer:
 
         if not found_urls:
             found_urls = ["Nothing to show!"]
-        
+
         return found_urls
 
     @staticmethod

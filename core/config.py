@@ -27,14 +27,14 @@ DIRECTORIES = {
     "wordlist": "programs/wordlist.txt",
     "nmap_bin": "programs/nmap/nmap",
     "subfinder": "programs/subfinder/subfinder",
-    "searchsploit" : "programs/exploitdb/searchsploit"
+    "searchsploit": "programs/exploitdb/searchsploit",
 }
 
 SECURITY_HEADERS = [
     "Content-Security-Policy",
     "X-Frame-Options",
     "X-Content-Type-Options",
-    "Strict-Transport-Security"
+    "Strict-Transport-Security",
 ]
 
 SHA_256_HASHES = {
@@ -43,20 +43,17 @@ SHA_256_HASHES = {
     "nmap_bin": "d25bf2109478fc71ea7efb3c5a834d9301f03788eeda47da49118e2170434d83",
     "subfinder": "88e6b07d47afee46804db926f46bba99eadee74e0ccb32b2f792bfea62b9da0c",
     "wordlist": "a85795c71df1269772054dfc13edda2fc80edaf24d59abcd98c8a62dd76d4820",
-    "searchsploit" : "16efc27312c6d3d9ea1be6e24ebc187e811c0606a33e52e80f1cbaabab77845f",
+    "searchsploit": "16efc27312c6d3d9ea1be6e24ebc187e811c0606a33e52e80f1cbaabab77845f",
 }
 
 ACTIVE_MODULES = {
-    "nmap_base" : True,
-    "nmap_aggressive" : True,
-    "ffuf" : True,
-    "subdomain" : True,
-    "web_analyzer" : True,
-    "ftp_spider" : True,
-    "vuln_searcher" : True,
+    "nmap_base": True,
+    "nmap_aggressive": True,
+    "ffuf": True,
+    "subdomain": True,
+    "web_analyzer": True,
+    "ftp_spider": True,
+    "vuln_searcher": True,
 }
 
-NMAP_CONFIG = {
-    "aggressive_level" : '-T4',
-    "port_flag" : '-F'
-}
+NMAP_CONFIG = {"aggressive_level": "-T4", "port_flag": "-F"}
