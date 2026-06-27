@@ -1,5 +1,6 @@
 import time
 import os
+import json
 
 class DataSaver():
     def __init__(self) -> None:
@@ -95,3 +96,56 @@ class DataSaver():
                 file.write("```\n")
                 
                 file.write("\n")    
+    
+    def save_to_json(self, target : str,open_ports : list, fuzzing : list, subdomains : list = [], web_analyzer : dict[str, dict] = {},ftp_data : list = [], formatted_nmap_aggressive : list = [],scan_type : str = "Unknown", vulnerabilities : list = []) -> None:
+        os.makedirs("reports", exist_ok=True)
+        
+        time_file = time.strftime("%Y-%m-%d_%H-%M")
+        time_header = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        filename = f"report_{time_file}.json"
+        path = os.path.join("reports", filename)
+        
+        data = {
+            'information' : {'date' : time_header, 'target' : target, 'scan_type' : scan_type},
+            'open_ports' : open_ports,
+            'fuzzing' : [],
+            'subdomains' : [],
+            'web_analyzer' : {},
+            'ftp' : [],
+            'nmap_aggressive' : [],
+            'vulnerabilities' : []
+        }
+        
+        if fuzzing:
+            data['fuzzing'] = fuzzing
+        else:
+            data['fuzzing'] = ["NO DATA"]
+        
+        if subdomains:
+            data['subdomains'] = subdomains
+        else:
+            data['subdomains'] = ["NO DATA"]
+        
+        if web_analyzer:
+            data['web_analyzer'] = web_analyzer
+        else:
+            data['web_analyzer']  = {'info' : 'NO DATA'}
+        
+        if ftp_data:
+            data['ftp'] = ftp_data
+        else:
+            data['ftp'] = ['NO DATA']
+        
+        if formatted_nmap_aggressive:
+            data['nmap_aggressive'] = formatted_nmap_aggressive
+        else:
+            data['nmap_aggressive'] = ['NO DATA']
+        
+        if vulnerabilities:
+            data['vulnerabilities'] = vulnerabilities
+        else:
+            data['vulnerabilities'] = ['NO DATA']
+        
+        with open(path, "w", encoding='utf-8') as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)

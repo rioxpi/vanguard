@@ -253,15 +253,36 @@ class TUI:
         web_analysis_list.items = right_column_items
         results_scene.add_widget(web_analysis_list)
         
-        save_to_md_button = Button(0.40, 0.89, "SAVE REPORT (MARKDOWN)")
+        buttons_container = Container(0.4, 0.89, 50, 1, False)
+        
+        save_to_md_button = buttons_container.add_child(Button(0, 0, "SAVE REPORT (MARKDOWN)"))
         save_to_md_button.bind("press", lambda: self.main_app.data_saver.save_to_markdown(
             self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type, vulnerabilities
         ))
-        results_scene.add_widget(save_to_md_button)
+        
+        advanced_button = buttons_container.add_child(Button(26, 0, 'ADVANCED'))
+        advanced_button.bind('press', lambda: self.construct_advanced_scene(open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, vulnerabilities))
+            
+        results_scene.add_widget(buttons_container)
         
         self.scene_manager.add_scene("results_scene", results_scene)
         self.scene_manager.switch_scene("results_scene")
 
+
+    def construct_advanced_scene(self ,open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, vulnerabilities):
+        advanced_scene = Scene()
+        
+        save_to_json_button = Button(0.45,0.5, "SAVE TO JSON")
+        
+        save_to_json_button.bind('press', lambda: self.main_app.data_saver.save_to_json(
+            self.main_app.target, open_ports, fuzzing_output, subdomain_results, web_analysis_output, ftp_spider, nmap_parsed, self.scan_type, vulnerabilities
+        ))
+        
+        advanced_scene.add_widget(save_to_json_button)
+        
+        self.scene_manager.add_scene('advanced', advanced_scene)
+        self.scene_manager.switch_scene('advanced')
+        
 
     def change_scene(self, scene_name: str) -> None:
         self.app.dispatch_to_main_thread(self.scene_manager.switch_scene, scene_name)
