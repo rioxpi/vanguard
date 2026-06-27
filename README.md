@@ -26,6 +26,9 @@ Vanguard is a Python-based reconnaissance utility that automates:
 - Aggressive nmap port scanning
 - Text User Interface
 - Analyzing web headers
+- Searching for exploits using exploitdb (searchsploit)
+- Checking for FTP files
+- Searching for subdomains
 
 ---
 
@@ -43,6 +46,9 @@ Vanguard is a Python-based reconnaissance utility that automates:
 │   ├── port_scanner.py
 │   ├── directory_fuzzer.py
 │   ├── subdomain_finder.py
+│   ├── save_data.py
+│   ├── ftp_spider.py
+│   ├── vuln_finder.py
 │   └── web_analyzer.py
 ├── main.py
 ├── README.md
@@ -83,7 +89,6 @@ Responsible for:
 
 #### `port_scanner.py`
 
-
 Responsible for:
 - launching nmap
 - parsing nmap output
@@ -93,16 +98,26 @@ Responsible for:
 Responsible for:
 - searching for domains using `subfinder`
 
-
-
 #### `web_analyzer.py`
-
-
-
-
 
 Responsible for:
 - Analyzing web headers
+
+### `save_data.py`
+
+Responsible for:
+- Saving data to markdown
+- Saving data to json
+
+### `ftp_spider.py`
+
+Responsible for:
+- Checking files available to open with anonymous account
+
+### `vuln_finder.py`
+
+Responsible for:
+- Searching exploits for current program's version using searchspoloit
 
 #### `launcher.py`
 
@@ -124,60 +139,6 @@ Responsible for:
 
 ```bash
 python install.py
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```
 
 This downloads all required tools into the local `programs/` directory.
@@ -185,7 +146,6 @@ This downloads all required tools into the local `programs/` directory.
 ---
 
 ## Usage
-
 
 ```bash
 python main.py <target>
@@ -218,12 +178,10 @@ python main.py example.com
 - [X] Improve error handling
 - [X] Add custom wordlist support
 - [X] Add Aggressive port scanning
-- [ ] Add saving to a markdown file
-- [ ] Add full & fast scan
-- [ ] Add ssh module
-- [ ] Add ftp module
-- [ ] Add smtp module
-- [ ] Add the ability to disable nmap aggressive scan
+- [X] Add saving to a markdown file
+- [X] Add full & fast scan
+- [X] Add ftp module
+- [X] Add the ability to disable nmap aggressive scan
 
 ---
 
@@ -250,6 +208,15 @@ python main.py example.com
 3. Add threads
 4. Add a checkbox to disable fuzzing
 5. Add subdomain finder
+
+### VERSION 0.1.2
+
+1. Add ftp module
+2. Add the ability to disable nmap aggressive
+3. Add nmap aggression level
+4. Add fast & full scan
+5. Add saving report to markdown and json
+6. Add searchsploit module for vulnerabilities
 
 ---
 
