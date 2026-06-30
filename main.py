@@ -16,6 +16,7 @@ from core.config import (
 from concurrent.futures import ThreadPoolExecutor
 from core.TUI import TUI
 import threading
+from core.plugin_engine import PluginEngine
 
 
 class Vanguard:
@@ -30,6 +31,8 @@ class Vanguard:
         self.data_saver = DataSaver()
         self.vuln_searcher = VulnSearcher()
         self.tui_app = TUI(self)
+        self.plugin_engine = PluginEngine()
+        self.plugin_engine.load_plugins()
         self.target = ""
 
     def run(self):
@@ -79,7 +82,7 @@ class Vanguard:
                 # FTP
                 if "21" in open_ports and ACTIVE_MODULES["ftp"]:
                     future_ftp_spider = executor.submit(self.ftp_spider.scan, target)
-
+                
                 # READING DATA
 
                 # NMAP AGGRESSIVE
@@ -131,6 +134,20 @@ class Vanguard:
             subdomain_results = {}
             ftp_spider = []
             found_vulnerabilities = []
+            
+        # PLUGINS
+        data = {
+            "open_ports" : open_ports,
+            "fuzzing": fuzzing_results,
+            "web_analysis" : web_analysis_results,
+            "aggressive_nmap" : aggressive_port_scan,
+            "subdomains" : subdomain_results,
+            "ftp_files" : ftp_spider,
+            "vulnerabilities" : found_vulnerabilities,
+        }
+        plugin_data = self.plugin_engine.execute_plugins(target, data)
+        
+        
         self.tui_app.construct_results_scene(
             open_ports,
             fuzzing_results,
@@ -139,7 +156,9 @@ class Vanguard:
             subdomain_results,
             ftp_spider,
             found_vulnerabilities,
+            plugin_data,
         )
+        
         self.tui_app.change_scene("results_scene")
 
     def identify_web_targets(self, open_ports: dict) -> dict:

@@ -155,6 +155,7 @@ class TUI:
         subdomain_results: dict = {},
         ftp_spider: list = [],
         vulnerabilities: list = [],
+        plugin_data : dict = {},
     ) -> None:
 
         results_scene = Scene()
@@ -316,6 +317,22 @@ class TUI:
 
         buttons_container = Container(0.4, 0.89, 50, 1, False)
 
+        
+        # PLUGINS
+        
+        if plugin_data:
+            right_column_items.append("")
+            right_column_items.append("┌────────────────────────────────────────┐")
+            right_column_items.append("│                 PLUGINS                │")
+            right_column_items.append("└────────────────────────────────────────┘")
+            for name, data in plugin_data.items():
+                if data:
+                    right_column_items.append(f"==== {name} ====")
+                    for d in data:
+                        right_column_items.append(d)
+                    right_column_items.append("")
+                
+        
         save_to_md_button = buttons_container.add_child(
             Button(0, 0, "SAVE REPORT (MARKDOWN)")
         )

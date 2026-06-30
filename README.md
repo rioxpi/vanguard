@@ -221,3 +221,5 @@ python main.py example.com
 ---
 
 ## Disclaimer
+
+This project is intended for educational purposes and authorized security testing only.
