@@ -1,7 +1,7 @@
 from axto import Engine
 from axto.scene import Scene
 from axto.scene_manager import SceneManager
-from axto.widgets import Label, Input, ScrollList, Button, CheckBox, Select, Container
+from axto.widgets import Label, Input, ScrollList, Button, CheckBox, Select, Container, StatusBar
 from core.config import DIRECTORIES, ACTIVE_MODULES, NMAP_CONFIG
 from pathlib import Path
 
@@ -35,6 +35,9 @@ class TUI:
         menu_scene.add_widget(input_widget)
         button = Button(x=0.5, y=0.6, text="SETTINGS")
         button.bind("press", lambda: self.scene_manager.switch_scene("settings_scene"))
+        
+        menu_scene = self._add_status_bar(menu_scene)
+        
         menu_scene.add_widget(button)
         self.scene_manager.add_scene("main_menu", menu_scene)
 
@@ -69,7 +72,7 @@ class TUI:
             )
         )
         nmap_port_flag = container.add_child(
-            Input(x=0, y=8, width=30, placeholder="Nmap port flag (default: -F)")
+            Input(x=0, y=8, width=30, placeholder="Nmap port flag (default: -F)", default_text="-F", allow_blank_string=True, allow_to_submit_on_exit=True)
         )
         custom_wordlist = container.add_child(
             Input(x=0, y=10, width=25, placeholder="Custom wordlist")
@@ -103,6 +106,9 @@ class TUI:
 
         back_button = Button(x=0.5, y=0.9, text="BACK")
         back_button.bind("press", lambda: self.scene_manager.switch_scene("main_menu"))
+        
+        settings_scene = self._add_status_bar(settings_scene)
+        
         settings_scene.add_widget(back_button)
         self.scene_manager.add_scene("settings_scene", settings_scene)
 
@@ -143,6 +149,9 @@ class TUI:
         full_scan.bind("press", lambda: self.start_scan(target))
 
         scene.add_widget(cnt)
+        
+        scene = self._add_status_bar(scene)
+        
         self.scene_manager.add_scene(name="type-choice", scene=scene)
         self.scene_manager.switch_scene("type-choice")
 
@@ -367,6 +376,8 @@ class TUI:
 
         results_scene.add_widget(buttons_container)
 
+        results_scene = self._add_status_bar(results_scene)
+        
         self.scene_manager.add_scene("results_scene", results_scene)
         self.scene_manager.switch_scene("results_scene")
 
@@ -409,3 +420,9 @@ class TUI:
 
     def run(self) -> None:
         self.app.run()
+
+    @staticmethod
+    def _add_status_bar(scene : Scene) -> Scene:   
+        status_bar = StatusBar({"ESC" : "Exit program", "TAB" : "Change focus"})
+        scene.add_widget(status_bar)
+        return scene
